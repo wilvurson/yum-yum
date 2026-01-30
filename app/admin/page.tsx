@@ -96,7 +96,7 @@ export default function AdminPage() {
   };
 
   return (
-    <div className="container mx-auto p-4">
+    <div className="container mx-auto p-4 border mt-20 rounded-2xl">
       <h1 className="text-2xl font-bold mb-4">Admin Panel</h1>
 
       <div className="mb-8">

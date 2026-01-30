@@ -42,3 +42,10 @@ export default function Home() {
     </div>
   );
 }
+
+// If you are sedentary (little or no exercise) : Calorie-Calculation = BMR x 1.2
+// If you are lightly active (light exercise/sports 1-3 days/week) : Calorie-Calculation = BMR x 1.375
+// If you are moderately active (moderate exercise/sports 3-5 days/week) : Calorie-Calculation = BMR x 1.55
+// If you are very active (hard exercise/sports 6-7 days a week) : Calorie-Calculation = BMR x 1.725
+// If you are extra active (very hard exercise/sports & physical job or 2x training) : Calorie-Calculation = BMR x 1.9
+// For example If you are sedentary, and your BMR equal 1745 so the total number of calories you need in order to maintain your current weight = 1745*1.2 = 2094.

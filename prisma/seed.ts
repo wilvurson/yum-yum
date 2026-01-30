@@ -113,6 +113,43 @@ async function main() {
     },
   });
 
+  // Create grocery items
+  await prisma.groceryItem.upsert({
+    where: { id: 1 },
+    update: {},
+    create: {
+      name: "Milk",
+      unit: "liter",
+      calPerUnit: "600",
+      image: "https://via.placeholder.com/150",
+      price: 2.5,
+    },
+  });
+
+  await prisma.groceryItem.upsert({
+    where: { id: 2 },
+    update: {},
+    create: {
+      name: "Bread",
+      unit: "loaf",
+      calPerUnit: "250",
+      image: "https://via.placeholder.com/150",
+      price: 1.8,
+    },
+  });
+
+  await prisma.groceryItem.upsert({
+    where: { id: 3 },
+    update: {},
+    create: {
+      name: "Eggs",
+      unit: "dozen",
+      calPerUnit: "840",
+      image: "https://via.placeholder.com/150",
+      price: 3.0,
+    },
+  });
+
   console.log("Seeded database");
 }
 

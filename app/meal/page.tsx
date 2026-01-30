@@ -138,7 +138,7 @@ export default function Page() {
                     setSelectedItem(null);
                     setFoods([]);
                   }}
-                  className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200"
+                  className="grid h-8 w-8 place-items-center rounded-full cursor-pointer bg-black"
                 >
                   ←
                 </button>

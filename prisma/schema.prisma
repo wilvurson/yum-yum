@@ -52,6 +52,8 @@ model Schedule {
   startTime String
   endTime   String
   activity  String
+
+  users User[]
 }
 
 model User {
@@ -60,6 +62,7 @@ model User {
   email     String   @unique
   isAdmin   Boolean  @default(false)
   orders    Order[]
+  schedule  Schedule[]
 }
 
 model Order {

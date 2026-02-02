@@ -3,6 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import Link from "next/link";
+import {
+  Sidebar,
+  SidebarContent,
+  SidebarFooter,
+  SidebarGroup,
+  SidebarHeader,
+} from "@/components/ui/sidebar";
+ 
 
 interface User {
   id: number;
@@ -90,18 +98,28 @@ export default function AdminPage() {
 
 
   return (
-    <div className="container mx-auto p-4 border mt-20 rounded-2xl">
-      <h1 className="text-2xl font-bold mb-4">Admin Panel</h1>
-      <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] lg:w-[360px]">
-        <Link href="/admin/admins">
-          <div
-           className="text-black">admins</div>
-        </Link>
-        <Link href="/admin/order">
-          <div
-          className="text-black">order</div>
-        </Link>
-      </section>
-    </div>
+    <Sidebar>
+      <SidebarHeader />
+      
+      <SidebarContent>
+        <SidebarGroup />
+        <div className="container mx-auto p-4 border mt-20 rounded-2xl">
+          <h1 className="text-2xl font-bold mb-4">Admin Panel</h1>
+          <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] lg:w-[360px]">
+            <Link href="/admin/admins">
+              <div className="text-black">admins</div>
+            </Link>
+            <Link href="/admin/order">
+              <div className="text-black">order</div>
+            </Link>
+            <Link href="/admin/createitems">
+              <div className="text-black">create</div>
+            </Link>
+          </section>
+        </div>
+        <SidebarGroup />
+      </SidebarContent>
+      <SidebarFooter />
+    </Sidebar>
   );
 }

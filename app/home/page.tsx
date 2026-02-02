@@ -126,17 +126,24 @@ export default function Page() {
   };
 
   // Get time status: 'active' (current), 'passed' (past), or 'future'
-  const getTimeStatus = (
-    item: ScheduleItem,
-  ): "active" | "passed" | "future" => {
-    if (currentTime > item.startTime && currentTime < item.endTime)
-      return "active";
-    if (currentTime >= item.endTime) return "passed";
-    return "future";
-  };
+  // Get time status: 'active' (from start until +1 min), 'passed' (after +1 min), or 'future'
+const getTimeStatus = (item: ScheduleItem): "active" | "passed" | "future" => {
+  const now = new Date();
+
+  const [startHours, startMinutes] = item.startTime.split(":").map(Number);
+  const startTimeDate = new Date();
+  startTimeDate.setHours(startHours, startMinutes, 0, 0);
+
+  const passedTime = new Date(startTimeDate.getTime() + 60000); // +1 minute
+
+  if (now >= passedTime) return "passed";
+  if (now >= startTimeDate) return "active";
+  return "future";
+};
+
 
   const formatItem = (item: ScheduleItem) => {
-    return `${formatTimeWithAmPm(item.startTime)} - [${item.activity}`;
+    return `[ ${formatTimeWithAmPm(item.startTime)} ] - [ ${item.activity} ]`;
   };
 
   return (
@@ -449,8 +456,7 @@ export default function Page() {
                             const startTime24 = `${hours24.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 
                             // Calculate endTime as 1 hour after startTime
-                            const endHour = (hours24 + 1) % 24;
-                            const calculatedEndTime = `${endHour.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+                            const calculatedEndTime = startTime24;
 
                             try {
                               const res = await fetch("/api/schedules", {

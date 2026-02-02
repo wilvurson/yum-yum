@@ -52,14 +52,18 @@ model Schedule {
   startTime String
   endTime   String
   activity  String
+  completed Boolean  @default(false)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
-  name      String
-  email     String   @unique
-  isAdmin   Boolean  @default(false)
-  orders    Order[]
+  id              Int        @id @default(autoincrement())
+  name            String
+  email           String     @unique
+  isAdmin         Boolean    @default(false)
+  orders          Order[]
+  schedules       Schedule[]
 }
 
 model Order {

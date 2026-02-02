@@ -37,6 +37,13 @@ export default function Navbar() {
               </div>
             </div>
           </Link>
+          <Link href="/profile">
+            <div className="text-black bg-stone-200 rounded-3xl h-auto">
+              <div className="h-10 flex flex-col justify-center px-10">
+                Profile
+              </div>
+            </div>
+          </Link>
         </div>
       </div>
     </header>

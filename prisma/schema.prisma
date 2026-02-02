@@ -6,7 +6,7 @@
 
 generator client {
   provider = "prisma-client"
-  output = "../lib/generated/prisma"
+  output   = "../lib/generated/prisma"
 }
 
 datasource db {
@@ -22,27 +22,27 @@ model MealType {
 model Food {
   id         Int      @id @default(autoincrement())
   name       String
-  calories String 
+  calories   String
   mealTypeId Int
-  cuisineId Int?
+  cuisineId  Int?
   mealType   MealType @relation(fields: [mealTypeId], references: [id])
-  cuisine   Cuisine? @relation(fields: [cuisineId], references: [id])
-  image String
-  price Decimal @db.Decimal(4,2)
+  cuisine    Cuisine? @relation(fields: [cuisineId], references: [id])
+  image      String
+  price      Decimal  @db.Decimal(4, 2)
 }
 
 model GroceryItem {
-  id               Int    @id @default(autoincrement())
-  name             String
-  unit             String
-  calPerUnit  String
-  image            String?
-  price Decimal @db.Decimal(4,2)
+  id         Int     @id @default(autoincrement())
+  name       String
+  unit       String
+  calPerUnit String
+  image      String?
+  price      Decimal @db.Decimal(4, 2)
 }
 
 model Cuisine {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
+  id   Int    @id @default(autoincrement())
+  name String @unique
   food Food[]
 }
 
@@ -52,17 +52,18 @@ model Schedule {
   startTime String
   endTime   String
   activity  String
-
-  users User[]
+  completed Boolean  @default(false)
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model User {
-  id        Int      @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   name      String
-  email     String   @unique
-  isAdmin   Boolean  @default(false)
+  email     String     @unique
+  isAdmin   Boolean    @default(false)
   orders    Order[]
-  schedule  Schedule[]
+  schedules Schedule[]
 }
 
 model Order {

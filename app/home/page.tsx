@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState, useEffect } from "react";
-import Navbar from "../navbar/navber"; // keep your navbar if you want
+import Navbar from "../navbar/navber";
 
 type ScheduleItem = {
   id: number;
@@ -9,27 +9,57 @@ type ScheduleItem = {
   startTime: string;
   endTime: string;
   activity: string;
+  completed: boolean;
+};
+
+type UserData = {
+  name: string;
 };
 
 export default function Page() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
   const [showForm, setShowForm] = useState(false);
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [timeHours, setTimeHours] = useState("");
+  const [timeMinutes, setTimeMinutes] = useState("");
+  const [timeAmPm, setTimeAmPm] = useState<"AM" | "PM">("AM");
   const [activity, setActivity] = useState("");
+  const [currentTime, setCurrentTime] = useState("");
+  const [userName, setUserName] = useState("User");
+  const [selectedDate, setSelectedDate] = useState<string>("");
+
+  // Force re-render every second to update time-based colors
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const updateTime = () => {
+      setCurrentTime(new Date().toTimeString().slice(0, 5));
+      setTick((t) => t + 1); // Force re-render
+    };
+    updateTime();
+    const interval = setInterval(updateTime, 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   const today = new Date().toISOString().split("T")[0];
 
   useEffect(() => {
-    // Ensure user is in DB
+    // Ensure user is DB and fetch user data
     fetch("/api/users", { method: "POST" })
       .then((res) => {
         if (!res.ok) {
           console.error("Failed to ensure user in DB");
         }
+        return fetch("/api/users");
+      })
+      .then((res) => res.json())
+      .then((data: UserData) => {
+        if (data.name) {
+          setUserName(data.name);
+        }
       })
       .catch((err) => console.error("Error ensuring user:", err));
 
+    // Set initial selected date and fetch schedules
+    setSelectedDate(today);
     fetch(`/api/schedules?date=${today}`)
       .then((res) => res.json())
       .then((data) => {
@@ -50,6 +80,7 @@ export default function Page() {
     const today = new Date();
     const out: {
       key: string;
+      date: string;
       day: number;
       shortDay: string;
       isToday: boolean;
@@ -59,6 +90,7 @@ export default function Page() {
       d.setDate(today.getDate() - 1 + i);
       out.push({
         key: d.toDateString(),
+        date: d.toISOString().split("T")[0],
         day: d.getDate(),
         shortDay: d.toLocaleDateString("en", { weekday: "short" }),
         isToday: i === 1,
@@ -67,34 +99,64 @@ export default function Page() {
     return out;
   }, []);
 
-  const currentTime = new Date().toTimeString().slice(0, 5); // HH:MM
+  const fetchSchedulesForDate = (date: string) => {
+    setSelectedDate(date);
+    fetch(`/api/schedules?date=${date}`)
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data)) {
+          setSchedule(data);
+        } else {
+          console.error("Invalid data format:", data);
+          setSchedule([]);
+        }
+      })
+      .catch((err) => {
+        console.error(err);
+        setSchedule([]);
+      });
+  };
 
-  const isActive = (item: ScheduleItem) => {
-    return currentTime >= item.startTime && currentTime <= item.endTime;
+  // Convert 24-hour format (HH:MM) to 12-hour format with AM/PM
+  const formatTimeWithAmPm = (time24: string) => {
+    const [hours24, minutes] = time24.split(":").map(Number);
+    const period = hours24 >= 12 ? "PM" : "AM";
+    const hours12 = hours24 % 12 || 12;
+    return `${hours12}:${minutes.toString().padStart(2, "0")} ${period}`;
+  };
+
+  // Get time status: 'active' (current), 'passed' (past), or 'future'
+  const getTimeStatus = (
+    item: ScheduleItem,
+  ): "active" | "passed" | "future" => {
+    if (currentTime > item.startTime && currentTime < item.endTime)
+      return "active";
+    if (currentTime >= item.endTime) return "passed";
+    return "future";
   };
 
   const formatItem = (item: ScheduleItem) => {
-    return `${item.startTime}  •  ${item.activity}`;
+    return `${formatTimeWithAmPm(item.startTime)} - [${item.activity}`;
   };
 
   return (
-    <div className="min-h-screen bg-white p-8 bg-[#f2f1ef]">
-      {/* Outer white dashboard */}
-      {/* Optional: your own navbar */}
+    <div className="min-h-screen bg-white p-8 text-black">
+      {/* Navbar */}
       <div className="px-7 pt-6">
         <Navbar />
       </div>
 
-      {/* Top pill navigation + right user */}
+      {/* Greeting + Search */}
       <div className="px-7 pt-4">
-        {/* Greeting + Search */}
-        <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between bg-[#f2f1ef]">
+        <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between white">
           <div>
             <h1 className="text-4xl font-extrabold tracking-tight text-zinc-900">
-              Hello, <span className="text-zinc-900">Jessica</span>
+              Hello <span className="text-zinc-900">"{userName}"</span>
             </h1>
             <p className="mt-1 text-sm text-zinc-500">
-              You have 8 activities today
+              {schedule.length === 0
+                ? "You have no activities today"
+                : `You have ${schedule.length} activities today`}
             </p>
           </div>
 
@@ -114,8 +176,8 @@ export default function Page() {
       {/* Main grid */}
       <div className="px-7 pb-8 pt-6">
         <div className="flex flex-col gap-6 lg:flex-row">
-          {/* LEFT + CENTER in one wide card area */}
-          <div className="flex-1 bg-[#f2f1ef]">
+          {/* LEFT + CENTER */}
+          <div className="flex-1 white">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_1fr]">
               {/* LEFT: Schedule */}
               <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
@@ -139,11 +201,16 @@ export default function Page() {
 
                   <div className="flex gap-2">
                     {dates.map((d) => (
-                      <div
+                      <button
                         key={d.key}
+                        onClick={() => fetchSchedulesForDate(d.date)}
                         className={[
-                          "flex flex-col items-center justify-center rounded-2xl px-3 py-2 text-center",
-                          d.isToday ? "bg-[#FFD54A]" : "bg-zinc-100",
+                          "flex flex-col items-center justify-center rounded-2xl px-3 py-2 text-center transition-colors",
+                          selectedDate === d.date
+                            ? "bg-[#FFD54A] text-emerald-700"
+                            : d.isToday
+                              ? "bg-lime-400"
+                              : "bg-zinc-100 hover:bg-zinc-200",
                         ].join(" ")}
                       >
                         <div className="text-sm font-semibold text-zinc-900">
@@ -152,7 +219,7 @@ export default function Page() {
                         <div className="text-[11px] text-zinc-500">
                           {d.shortDay}
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
 
@@ -161,25 +228,128 @@ export default function Page() {
                   </button>
                 </div>
 
-                {/* Timeline list */}
-                <div className="mt-5 space-y-4">
-                  {schedule.map((item, idx) => {
-                    const active = isActive(item);
-                    return (
-                      <div key={idx} className="relative pl-7">
-                        <div className="absolute left-0 top-1.5 grid h-5 w-5 place-items-center rounded-full border border-zinc-200 bg-white">
-                          <div
-                            className={`h-2.5 w-2.5 rounded-full ${active ? "bg-emerald-500" : "bg-zinc-400"}`}
-                          />
-                        </div>
-                        <div
-                          className={`text-[12px] leading-5 ${active ? "text-zinc-900" : "text-zinc-500"}`}
-                        >
-                          {formatItem(item)}
-                        </div>
-                      </div>
-                    );
-                  })}
+                {/* Timeline list - Messenger style */}
+                <div className="mt-5">
+                  {schedule.length === 0 ? (
+                    <p className="text-sm text-zinc-500 text-center py-4">
+                      No activities for this date
+                    </p>
+                  ) : (
+                    <div className="relative">
+                      {[...schedule]
+                        .sort((a, b) => a.startTime.localeCompare(b.startTime))
+                        .map((item, idx) => {
+                          const isLast = idx === schedule.length - 1;
+                          const status = getTimeStatus(item);
+                          const isCompleted = item.completed;
+                          const dotColor = isCompleted
+                            ? "bg-stone-300"
+                            : status === "active"
+                              ? "bg-emerald-500"
+                              : status === "passed"
+                                ? "bg-red-500"
+                                : "bg-zinc-400";
+                          const textColor = isCompleted
+                            ? "text-stone-300"
+                            : status === "active"
+                              ? "text-zinc-900"
+                              : status === "passed"
+                                ? "text-red-500"
+                                : "text-zinc-500";
+                          return (
+                            <div
+                              key={idx}
+                              className="relative flex items-start gap-4 py-2 group"
+                            >
+                              {/* Vertical line - connect dots */}
+                              {!isLast && (
+                                <div
+                                  className={`absolute left-[10px] top-5 -bottom-2 w-1 h-10 ${dotColor}`}
+                                />
+                              )}
+                              {/* Colored dot */}
+                              <div
+                                className={`absolute left-[7px] top-3 w-2.5 h-2.5 rounded-full ${dotColor} shadow-sm z-10`}
+                              />
+                              {/* Content */}
+                              <div className="flex-1 ml-8">
+                                <div
+                                  className={`text-[12px] leading-5 ${textColor} ${isCompleted ? "line-through" : ""}`}
+                                >
+                                  {formatItem(item)}
+                                </div>
+                              </div>
+                              {/* Buttons - show on hover */}
+                              <div className="flex items-center gap-2 opacity-0 transition-opacity group-hover:opacity-100">
+                                {status !== "passed" && (
+                                  <button
+                                    onClick={async () => {
+                                      try {
+                                        const res = await fetch(
+                                          "/api/schedules",
+                                          {
+                                            method: "PATCH",
+                                            headers: {
+                                              "Content-Type":
+                                                "application/json",
+                                            },
+                                            body: JSON.stringify({
+                                              id: item.id,
+                                              completed: !item.completed,
+                                            }),
+                                          },
+                                        );
+                                        if (res.ok) {
+                                          const updated = await res.json();
+                                          setSchedule(
+                                            schedule.map((s) =>
+                                              s.id === item.id ? updated : s,
+                                            ),
+                                          );
+                                        }
+                                      } catch (err) {
+                                        console.error(err);
+                                      }
+                                    }}
+                                    className={`grid h-5 w-5 place-items-center rounded border transition-colors ${
+                                      item.completed
+                                        ? "border-emerald-500 bg-emerald-500 text-white"
+                                        : "border-zinc-300 hover:border-emerald-400"
+                                    }`}
+                                  >
+                                    {item.completed ? "^" : ""}
+                                  </button>
+                                )}
+                                <button
+                                  onClick={async () => {
+                                    try {
+                                      const res = await fetch(
+                                        `/api/schedules?id=${item.id}`,
+                                        {
+                                          method: "DELETE",
+                                        },
+                                      );
+                                      if (res.ok) {
+                                        setSchedule(
+                                          schedule.filter(
+                                            (s) => s.id !== item.id,
+                                          ),
+                                        );
+                                      }
+                                    } catch (err) {
+                                      console.error(err);
+                                    }
+                                  }}
+                                  className="text-zinc-400 hover:text-red-500"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  )}
                 </div>
 
                 {/* Add item form */}
@@ -188,46 +358,64 @@ export default function Page() {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-zinc-700 mb-1">
-                          Time Range
+                          Time
                         </label>
-                        <div className="flex gap-2">
+                        <div className="flex items-center gap-2">
                           <input
-                            type="time"
-                            value={startTime}
-                            onChange={(e) => setStartTime(e.target.value)}
-                            className="flex-1 rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF]"
-                            placeholder="Start time"
+                            type="text"
+                            maxLength={2}
+                            value={timeHours}
+                            onChange={(e) => {
+                              const val = e.target.value
+                                .replace(/\D/g, "")
+                                .slice(0, 2);
+                              setTimeHours(val);
+                              if (val.length === 2 && timeMinutes.length < 2) {
+                                document
+                                  .getElementById("time-minutes")
+                                  ?.focus();
+                              }
+                            }}
+                            placeholder="HH"
+                            className="w-14 rounded-lg border border-zinc-300 bg-zinc-50 px-2 py-2 text-center text-sm outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF]"
                           />
-                          <span className="self-center text-sm text-zinc-500">
-                            to
-                          </span>
+                          <span className="text-zinc-500">:</span>
                           <input
-                            type="time"
-                            value={endTime}
-                            onChange={(e) => setEndTime(e.target.value)}
-                            className="flex-1 rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF]"
-                            placeholder="End time"
+                            id="time-minutes"
+                            type="text"
+                            maxLength={2}
+                            value={timeMinutes}
+                            onChange={(e) => {
+                              const val = e.target.value
+                                .replace(/\D/g, "")
+                                .slice(0, 2);
+                              setTimeMinutes(val);
+                            }}
+                            placeholder="MM"
+                            className="w-14 rounded-lg border border-zinc-300 bg-zinc-50 px-2 py-2 text-center text-sm outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF]"
                           />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setTimeAmPm(timeAmPm === "AM" ? "PM" : "AM")
+                            }
+                            className="rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm font-medium outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF]"
+                          >
+                            {timeAmPm}
+                          </button>
                         </div>
                       </div>
                       <div>
                         <label className="block text-sm font-medium text-zinc-700 mb-1">
                           Activity
                         </label>
-                        <select
+                        <input
+                          type="text"
                           value={activity}
                           onChange={(e) => setActivity(e.target.value)}
+                          placeholder="Enter activity"
                           className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF]"
-                        >
-                          <option value="">Select an activity</option>
-                          <option value="🍽️ Eat">🍽️ Eat</option>
-                          <option value="🥤 Drink">🥤 Drink</option>
-                          <option value="🏃 Run">🏃 Run</option>
-                          <option value="💪 Exercise">💪 Exercise</option>
-                          <option value="💼 Work">💼 Work</option>
-                          <option value="😴 Rest">😴 Rest</option>
-                          <option value="✨ Other">✨ Other</option>
-                        </select>
+                        />
                       </div>
                       <div className="flex gap-2">
                         <button
@@ -238,31 +426,56 @@ export default function Page() {
                         </button>
                         <button
                           onClick={async () => {
-                            if (startTime && endTime && activity) {
-                              try {
-                                const res = await fetch("/api/schedules", {
-                                  method: "POST",
-                                  headers: {
-                                    "Content-Type": "application/json",
-                                  },
-                                  body: JSON.stringify({
-                                    date: today,
-                                    startTime,
-                                    endTime,
-                                    activity,
-                                  }),
-                                });
-                                if (res.ok) {
-                                  const newItem = await res.json();
-                                  setSchedule([...schedule, newItem]);
-                                  setStartTime("");
-                                  setEndTime("");
-                                  setActivity("");
-                                  setShowForm(false);
-                                }
-                              } catch (err) {
-                                console.error(err);
+                            const hours = parseInt(timeHours) || 0;
+                            const minutes = parseInt(timeMinutes) || 0;
+
+                            if (
+                              hours < 1 ||
+                              hours > 12 ||
+                              minutes < 0 ||
+                              minutes > 59 ||
+                              !activity
+                            ) {
+                              alert("Please enter valid time and activity");
+                              return;
+                            }
+
+                            // Convert to 24-hour format
+                            let hours24 = hours;
+                            if (timeAmPm === "PM" && hours !== 12)
+                              hours24 = hours + 12;
+                            if (timeAmPm === "AM" && hours === 12) hours24 = 0;
+
+                            const startTime24 = `${hours24.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+
+                            // Calculate endTime as 1 hour after startTime
+                            const endHour = (hours24 + 1) % 24;
+                            const calculatedEndTime = `${endHour.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+
+                            try {
+                              const res = await fetch("/api/schedules", {
+                                method: "POST",
+                                headers: {
+                                  "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                  date: selectedDate || today,
+                                  startTime: startTime24,
+                                  endTime: calculatedEndTime,
+                                  activity,
+                                }),
+                              });
+                              if (res.ok) {
+                                const newItem = await res.json();
+                                setSchedule([...schedule, newItem]);
+                                setTimeHours("");
+                                setTimeMinutes("");
+                                setTimeAmPm("AM");
+                                setActivity("");
+                                setShowForm(false);
                               }
+                            } catch (err) {
+                              console.error(err);
                             }
                           }}
                           className="flex-1 rounded-lg bg-[#7B61FF] py-2 text-sm font-semibold text-white hover:opacity-95"
@@ -277,360 +490,299 @@ export default function Page() {
 
               {/* CENTER: Cards */}
               <div className="space-y-6">
-                {/* Top row: Report + Shopping list */}
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-                  {/* Report */}
-                  <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="text-sm font-semibold text-zinc-900">
-                          Report
-                        </div>
-                        <div className="text-xs text-zinc-500">
-                          Goals this week
-                        </div>
-                      </div>
-                      <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
-                        ⋯
-                      </button>
-                    </div>
-
-                    <div className="mt-4 grid grid-cols-2 gap-3">
-                      <div className="rounded-2xl bg-sky-50 p-4">
-                        <div className="text-xs font-semibold text-zinc-700">
-                          Water
-                        </div>
-                        <div className="mt-6 text-lg font-extrabold text-zinc-900">
-                          2500ml
-                        </div>
-                        <div className="mt-1 text-[11px] text-zinc-500">
-                          Goal 3L
-                        </div>
-                      </div>
-                      <div className="rounded-2xl bg-amber-50 p-4">
-                        <div className="text-xs font-semibold text-zinc-700">
-                          Weight
-                        </div>
-                        <div className="mt-6 text-lg font-extrabold text-zinc-900">
-                          62kg
-                        </div>
-                        <div className="mt-1 text-[11px] text-zinc-500">
-                          Goal 56kg
-                        </div>
-                      </div>
-                      <div className="rounded-2xl bg-lime-50 p-4">
-                        <div className="text-xs font-semibold text-zinc-700">
-                          BPM
-                        </div>
-                        <div className="mt-6 text-lg font-extrabold text-zinc-900">
-                          95bpm
-                        </div>
-                        <div className="mt-1 text-[11px] text-zinc-500">
-                          15min ago
-                        </div>
-                      </div>
-                      <div className="rounded-2xl bg-rose-50 p-4">
-                        <div className="text-xs font-semibold text-zinc-700">
-                          Calories
-                        </div>
-                        <div className="mt-6 text-lg font-extrabold text-zinc-900">
-                          320kcal
-                        </div>
-                        <div className="mt-1 text-[11px] text-zinc-500">
-                          Left 1150
-                        </div>
-                      </div>
-                    </div>
-                  </section>
-
-                  {/* Shopping list */}
-                  <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
-                    <div className="flex items-center justify-between">
+                {/* Report */}
+                <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+                  <div className="flex items-center justify-between">
+                    <div>
                       <div className="text-sm font-semibold text-zinc-900">
-                        Shopping list
+                        Report
                       </div>
-                      <button className="grid h-8 w-8 place-items-center rounded-full bg-black text-white">
-                        ?
-                      </button>
+                      <div className="text-xs text-zinc-500">
+                        Goals this week
+                      </div>
                     </div>
-
-                    <div className="mt-4 space-y-3 text-sm">
-                      {[
-                        {
-                          name: "Avocados",
-                          qty: "2 pc",
-                          checked: true,
-                          icon: "🥑",
-                        },
-                        {
-                          name: "Salmon fillets",
-                          qty: "2 x 150g",
-                          checked: true,
-                          icon: "🐟",
-                        },
-                        {
-                          name: "Yogurt",
-                          qty: "200g",
-                          checked: false,
-                          icon: "🥣",
-                          tag: "AI Suggested",
-                        },
-                        {
-                          name: "Dark chocolate almonds",
-                          qty: "50g",
-                          checked: false,
-                          icon: "🍫",
-                        },
-                        {
-                          name: "Red Onion",
-                          qty: "1/4 piece",
-                          checked: false,
-                          icon: "🧅",
-                        },
-                        {
-                          name: "Lettuce",
-                          qty: "2 pc",
-                          checked: false,
-                          icon: "🥬",
-                        },
-                      ].map((it) => (
-                        <div
-                          key={it.name}
-                          className="flex items-center justify-between"
-                        >
-                          <div className="flex items-center gap-3">
-                            <div
-                              className={[
-                                "grid h-5 w-5 place-items-center rounded-md border",
-                                it.checked
-                                  ? "border-emerald-400 bg-emerald-50"
-                                  : "border-zinc-200 bg-white",
-                              ].join(" ")}
-                            >
-                              {it.checked ? "✓" : ""}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span>{it.icon}</span>
-                              <span className="text-zinc-800">{it.name}</span>
-                              {it.tag ? (
-                                <span className="rounded-full bg-sky-100 px-2 py-0.5 text-[11px] font-semibold text-sky-700">
-                                  {it.tag}
-                                </span>
-                              ) : null}
-                            </div>
-                          </div>
-                          <div className="text-xs text-zinc-500">{it.qty}</div>
-                        </div>
-                      ))}
-                    </div>
-
-                    <button className="mt-5 w-full rounded-full bg-[#FFD54A] py-3 text-sm font-extrabold text-zinc-900 hover:brightness-95">
-                      🛒 Shop Now
+                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
+                      ⋯
                     </button>
-                  </section>
-                </div>
+                  </div>
 
-                {/* Bottom row: Daily intake + Activity + Promo */}
-                <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                  {/* Daily intake */}
-                  <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
-                    <div className="flex items-center justify-between">
+                  <div className="mt-4 grid grid-cols-2 gap-3">
+                    <div className="rounded-2xl bg-sky-50 p-4">
+                      <div className="text-xs font-semibold text-zinc-700">
+                        Water
+                      </div>
+                      <div className="mt-6 text-lg font-extrabold text-zinc-900">
+                        2500ml
+                      </div>
+                      <div className="mt-1 text-[11px] text-zinc-500">
+                        Goal: 3L
+                      </div>
+                    </div>
+                    <div className="rounded-2xl bg-amber-50 p-4">
+                      <div className="text-xs font-semibold text-zinc-700">
+                        Weight
+                      </div>
+                      <div className="mt-6 text-lg font-extrabold text-zinc-900">
+                        62kg
+                      </div>
+                      <div className="mt-1 text-[11px] text-zinc-500">
+                        Goal: 0kg
+                      </div>
+                    </div>
+                    <div className="rounded-2xl bg-lime-50 p-4">
+                      <div className="text-xs font-semibold text-zinc-700">
+                        BPM
+                      </div>
+                      <div className="mt-6 text-lg font-extrabold text-zinc-900">
+                        72
+                      </div>
+                      <div className="mt-1 text-[11px] text-zinc-500">
+                        Goal: 2000kcal
+                      </div>
+                    </div>
+                    <div className="rounded-2xl bg-rose-50 p-4">
+                      <div className="text-xs font-semibold text-zinc-700">
+                        Sleep
+                      </div>
+                      <div className="mt-6 text-lg font-extrabold text-zinc-900">
+                        8h
+                      </div>
+                      <div className="mt-1 text-[11px] text-zinc-500">
+                        10:00 PM - 6:00 AM
+                      </div>
+                    </div>
+                  </div>
+                </section>
+
+                {/* Categories */}
+                <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+                  <div className="flex items-center justify-between">
+                    <div>
                       <div className="text-sm font-semibold text-zinc-900">
-                        Daily intake
+                        Categories
                       </div>
-                      <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
-                        ⋯
-                      </button>
+                      <div className="text-xs text-zinc-500">
+                        Choose your category
+                      </div>
                     </div>
+                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
+                      ⋯
+                    </button>
+                  </div>
 
-                    <div className="mt-4 flex items-center gap-3">
-                      {[
-                        { label: "Veg", value: "70", icon: "🥦" },
-                        { label: "Prot", value: "90", icon: "🍗" },
-                        { label: "Carb", value: "300", icon: "🍞" },
-                      ].map((it) => (
+                  <div className="mt-4 grid grid-cols-4 gap-3">
+                    {[
+                      { name: "Meal", icon: "🍽️", color: "bg-orange-50" },
+                      { name: "Grocery", icon: "🛒", color: "bg-green-50" },
+                      { name: "Map", icon: "🗺️", color: "bg-blue-50" },
+                      { name: "Workout", icon: "💪", color: "bg-purple-50" },
+                    ].map((category) => (
+                      <a
+                        key={category.name}
+                        href={`/${category.name.toLowerCase()}`}
+                        className="flex flex-col items-center gap-2 rounded-2xl p-3 transition-colors hover:bg-zinc-50"
+                      >
                         <div
-                          key={it.label}
-                          className="flex-1 rounded-2xl bg-zinc-50 p-3"
+                          className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl ${category.color}`}
                         >
-                          <div className="flex items-center gap-2 text-xs text-zinc-600">
-                            <span>{it.icon}</span> {it.label}
-                          </div>
-                          <div className="mt-2 text-lg font-extrabold text-zinc-900">
-                            {it.value}
-                          </div>
+                          {category.icon}
                         </div>
-                      ))}
-                    </div>
-
-                    <div className="mt-4 text-xs text-zinc-500">
-                      Water 2.5 / 3L
-                    </div>
-                    <div className="mt-2 flex items-end gap-2">
-                      {Array.from({ length: 6 }).map((_, i) => (
-                        <div
-                          key={i}
-                          className={[
-                            "w-7 rounded-xl border border-zinc-200 bg-white",
-                            i < 5 ? "h-14" : "h-10",
-                          ].join(" ")}
-                        >
-                          <div
-                            className={[
-                              "mx-auto mt-1 w-[80%] rounded-lg",
-                              i < 5
-                                ? "h-[70%] bg-sky-200"
-                                : "h-[45%] bg-sky-200",
-                            ].join(" ")}
-                          />
+                        <div className="text-xs font-medium text-zinc-700">
+                          {category.name}
                         </div>
-                      ))}
-                    </div>
-                  </section>
+                      </a>
+                    ))}
+                  </div>
+                </section>
 
-                  {/* Activity */}
-                  <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
-                    <div className="flex items-center justify-between">
+                {/* Special for you */}
+                <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+                  <div className="flex items-center justify-between">
+                    <div>
                       <div className="text-sm font-semibold text-zinc-900">
-                        Activity
+                        Special for you
                       </div>
-                      <button className="grid h-8 w-8 place-items-center rounded-full bg-black text-white">
-                        ?
-                      </button>
+                      <div className="text-xs text-zinc-500">
+                        Recommended based on your interests
+                      </div>
                     </div>
+                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
+                      ⋯
+                    </button>
+                  </div>
 
-                    <div className="mt-5 flex items-end gap-3">
-                      {[
-                        { day: "Sun", h: "h-12" },
-                        { day: "Mon", h: "h-16" },
-                        { day: "Tue", h: "h-24" },
-                        { day: "Wed", h: "h-20" },
-                        { day: "Thu", h: "h-10" },
-                      ].map((b) => (
+                  <div className="mt-4 space-y-3">
+                    {[
+                      {
+                        title: "Avocado Toast with Poached Egg",
+                        time: "15 min",
+                        calories: "320 kcal",
+                        color: "bg-orange-50",
+                      },
+                      {
+                        title: "Grilled Chicken Salad",
+                        time: "25 min",
+                        calories: "450 kcal",
+                        color: "bg-green-50",
+                      },
+                    ].map((recipe, idx) => (
+                      <div
+                        key={idx}
+                        className="flex items-center gap-4 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-zinc-100"
+                      >
                         <div
-                          key={b.day}
-                          className="flex flex-col items-center gap-2"
+                          className={`flex h-16 w-16 items-center justify-center rounded-xl text-2xl ${recipe.color}`}
                         >
-                          <div
-                            className={`w-6 ${b.h} rounded-full bg-[#7B61FF]/70`}
-                          />
-                          <div className="text-[11px] text-zinc-500">
-                            {b.day}
+                          🥗
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-medium text-zinc-900">
+                            {recipe.title}
+                          </div>
+                          <div className="mt-1 text-xs text-zinc-500">
+                            {recipe.time} • {recipe.calories}
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  </section>
-
-                  {/* Promo */}
-                  <section className="rounded-[28px] bg-[#7B61FF] p-6 text-white shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
-                    <div className="text-sm font-semibold">
-                      Got a Recipe That Rocks?
-                    </div>
-                    <div className="mt-2 text-xs text-white/80">
-                      Share it & help your recipe list become the next big hit!
-                    </div>
-
-                    <div className="mt-4 rounded-2xl bg-white/15 p-4">
-                      <div className="flex items-center gap-1 text-lg">
-                        ★★★★★
+                        <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
+                          ➜
+                        </button>
                       </div>
-                      <div className="mt-2 text-sm font-semibold">
-                        Got a Recipe That Rocks?
-                      </div>
-                      <button className="mt-4 w-full rounded-full border border-white/40 bg-white/10 py-2 text-sm font-semibold hover:bg-white/15">
-                        + Add Recipe
-                      </button>
-                    </div>
-                  </section>
-                </div>
+                    ))}
+                  </div>
+                </section>
               </div>
             </div>
           </div>
 
-          {/* RIGHT: Recipe card */}
-          <aside className="w-full lg:w-[320px]">
-            <div className="rounded-[32px] bg-white shadow-[0_18px_40px_rgba(0,0,0,0.12)]">
-              <div className="p-4">
-                <div className="overflow-hidden rounded-[26px]">
-                  <div className="h-44 w-full bg-zinc-200">
-                    {/* Replace with your real image */}
-                    <img
-                      src="https://images.unsplash.com/photo-1604909052743-94e838986d24?auto=format&fit=crop&w=900&q=80"
-                      alt="Shrimp stir fry"
-                      className="h-44 w-full object-cover"
-                    />
-                  </div>
+          {/* RIGHT: Leaderboard & Friends */}
+          <div className="space-y-6 lg:w-[280px]">
+            {/* Leaderboard */}
+            <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="text-sm font-semibold text-zinc-900">
+                  Leaderboard
                 </div>
+                <button className="text-xs text-zinc-500 hover:text-zinc-700">
+                  See all
+                </button>
+              </div>
 
-                <div className="mt-4 px-1">
-                  <h2 className="text-2xl font-extrabold leading-tight text-zinc-900">
-                    Shrimp Stir-
-                    <br />
-                    Fry with
-                    <br />
-                    Brown Rice
-                  </h2>
-
-                  <p className="mt-2 text-xs leading-5 text-zinc-500">
-                    A quick and healthy stir-fry with succulent shrimp, colorful
-                    vegetables, and a side of brown rice.
-                  </p>
-
-                  <div className="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-700">
-                    Main dish
-                  </div>
-
-                  <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
-                    <span className="rounded-full bg-zinc-100 px-3 py-1">
-                      🍽 360kcal
-                    </span>
-                    <span className="rounded-full bg-zinc-100 px-3 py-1">
-                      ⏱ 45min
-                    </span>
-                  </div>
-
-                  <div className="mt-4">
-                    <div className="text-sm font-semibold text-zinc-900">
-                      Ingredients
+              <div className="space-y-3">
+                {[
+                  { name: "Alex", score: 1250, rank: 1, color: "bg-amber-100" },
+                  { name: "Sam", score: 980, rank: 2, color: "bg-zinc-100" },
+                  {
+                    name: "Jordan",
+                    score: 870,
+                    rank: 3,
+                    color: "bg-orange-100",
+                  },
+                  { name: "You", score: 720, rank: 4, color: "bg-lime-100" },
+                ].map((user) => (
+                  <div
+                    key={user.rank}
+                    className="flex items-center gap-3 rounded-xl bg-zinc-50/50 p-2"
+                  >
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-zinc-600">
+                      {user.rank}
                     </div>
-                    <div className="mt-3 grid grid-cols-3 gap-3 text-center text-xs text-zinc-600">
-                      {[
-                        { icon: "🍤", label: "60g" },
-                        { icon: "🍚", label: "100g" },
-                        { icon: "🧄", label: "1/2 piece" },
-                        { icon: "🥬", label: "20g" },
-                        { icon: "🧂", label: "10ml" },
-                        { icon: "🫙", label: "10ml" },
-                      ].map((it, i) => (
-                        <div key={i} className="rounded-2xl bg-zinc-50 p-3">
-                          <div className="text-lg">{it.icon}</div>
-                          <div className="mt-1">{it.label}</div>
-                        </div>
-                      ))}
+                    <div
+                      className={`flex h-8 w-8 items-center justify-center rounded-full ${user.color}`}
+                    >
+                      👤
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-zinc-900">
+                        {user.name}
+                      </div>
+                    </div>
+                    <div className="text-sm font-bold text-zinc-900">
+                      {user.score}
                     </div>
                   </div>
+                ))}
+              </div>
+            </section>
 
-                  <div className="mt-4 flex items-center justify-between text-xs text-zinc-500">
-                    <div className="inline-flex items-center gap-2">
-                      <span className="text-orange-500">🔥</span>
-                      <span className="font-semibold text-zinc-800">
-                        Medium
-                      </span>
+            {/* Add Friends */}
+            <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="text-sm font-semibold text-zinc-900">
+                  Add friends
+                </div>
+                <button className="text-xs text-zinc-500 hover:text-zinc-700">
+                  See all
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {[
+                  { name: "Taylor", mutual: 4, status: "Follows you" },
+                  { name: "Morgan", mutual: 2, status: "Follows you" },
+                  { name: "Casey", mutual: 1, status: "New to app" },
+                ].map((friend, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-3 rounded-xl bg-zinc-50/50 p-2"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-200 text-lg">
+                      👤
                     </div>
-                    <div className="inline-flex items-center gap-3">
-                      <span>👍 21.8k</span>
-                      <span>👁 164.1k</span>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-zinc-900">
+                        {friend.name}
+                      </div>
+                      <div className="text-xs text-zinc-500">
+                        {friend.mutual} mutual friends • {friend.status}
+                      </div>
                     </div>
+                    <button className="rounded-lg bg-[#7B61FF] px-3 py-1 text-xs font-medium text-white hover:opacity-95">
+                      Add
+                    </button>
                   </div>
+                ))}
+              </div>
+            </section>
 
-                  <button className="mt-4 w-full rounded-full bg-zinc-100 py-3 text-sm font-extrabold text-zinc-900 hover:bg-zinc-200">
-                    Explore Recipe →
-                  </button>
+            {/* Upcoming Birthdays */}
+            <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+              <div className="mb-4 flex items-center justify-between">
+                <div className="text-sm font-semibold text-zinc-900">
+                  Upcoming Birthdays
                 </div>
               </div>
-            </div>
-          </aside>
+
+              <div className="space-y-3">
+                {[
+                  { name: "Riley", date: "Today", color: "bg-pink-100" },
+                  { name: "Avery", date: "Tomorrow", color: "bg-purple-100" },
+                  { name: "Quinn", date: "Dec 28", color: "bg-blue-100" },
+                ].map((birthday, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-3 rounded-xl bg-zinc-50/50 p-2"
+                  >
+                    <div
+                      className={`flex h-10 w-10 items-center justify-center rounded-full ${birthday.color}`}
+                    >
+                      🎂
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-zinc-900">
+                        {birthday.name}
+                      </div>
+                      <div className="text-xs text-zinc-500">
+                        {birthday.date}
+                      </div>
+                    </div>
+                    <button className="rounded-lg border border-zinc-200 px-3 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50">
+                      Wish
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </div>

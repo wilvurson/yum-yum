@@ -145,32 +145,34 @@ export default function Page() {
 
   // Convert time (HH:MM) to position percentage (0-100) for timeline
   // Based on the schedule's time range
-  const getItemPosition = (time: string, minTime: number, maxTime: number): number => {
-  const [hours, minutes] = time.split(":").map(Number);
-  const totalMinutes = hours * 60 + minutes;
+  const getItemPosition = (
+    time: string,
+    minTime: number,
+    maxTime: number,
+  ): number => {
+    const [hours, minutes] = time.split(":").map(Number);
+    const totalMinutes = hours * 60 + minutes;
 
-  const range = maxTime - minTime;
-  if (range <= 0) return 0;
+    const range = maxTime - minTime;
+    if (range <= 0) return 0;
 
-  const pct = ((totalMinutes - minTime) / range) * 100;
-  return Math.max(0, Math.min(100, pct));
-};
-
+    const pct = ((totalMinutes - minTime) / range) * 100;
+    return Math.max(0, Math.min(100, pct));
+  };
 
   // Get current time position for NOW marker
   // Based on the schedule's time range
   const getNowPosition = (minTime: number, maxTime: number): number => {
-  const now = new Date();
-  const totalMinutes =
-    now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+    const now = new Date();
+    const totalMinutes =
+      now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
 
-  const range = maxTime - minTime;
-  if (range <= 0) return 0;
+    const range = maxTime - minTime;
+    if (range <= 0) return 0;
 
-  const pct = ((totalMinutes - minTime) / range) * 100;
-  return Math.max(0, Math.min(100, pct));
-};
-
+    const pct = ((totalMinutes - minTime) / range) * 100;
+    return Math.max(0, Math.min(100, pct));
+  };
 
   // Calculate time range from schedule
   const timeRange =
@@ -182,18 +184,17 @@ export default function Page() {
               return h * 60 + m;
             }),
           ),
-          max:
-            Math.max(
-              ...schedule.map((s) => {
-                const [h, m] = s.startTime.split(":").map(Number);
-                return h * 60 + m;
-              }),
-            ) + 60, // Add 1 hour buffer
+          max: Math.max(
+            ...schedule.map((s) => {
+              const [h, m] = s.endTime.split(":").map(Number);
+              return h * 60 + m;
+            }),
+          ),
         }
       : { min: 0, max: 1440 };
 
   const formatItem = (item: ScheduleItem) => {
-    return `[ ${formatTimeWithAmPm(item.startTime)} ] - [ ${item.activity} ]`;
+    return `${formatTimeWithAmPm(item.startTime)} ${item.activity}`;
   };
 
   return (
@@ -266,8 +267,8 @@ export default function Page() {
                           selectedDate === d.date
                             ? "bg-[#FFD54A] text-emerald-700"
                             : d.isToday
-                              ? "bg-lime-400"
-                              : "bg-zinc-100 hover:bg-zinc-200",
+                            ? "bg-lime-400"
+                            : "bg-zinc-100 hover:bg-zinc-200",
                         ].join(" ")}
                       >
                         <div className="text-sm font-semibold text-zinc-900">
@@ -298,13 +299,15 @@ export default function Page() {
 
                       {/* NOW marker - moves in real time */}
                       <div
-  className="absolute left-0 right-0 h-0.5 bg-[#FFD54A] z-20 pointer-events-none"
-  style={{
-    top: `${getNowPosition(timeRange.min, timeRange.max)}%`,
-    transform: "translateY(-50%)",
-  }}
->
-
+                        className="absolute left-0 right-0 h-0.5 bg-[#FFD54A] z-20 pointer-events-none"
+                        style={{
+                          top: `${getNowPosition(
+                            timeRange.min,
+                            timeRange.max,
+                          )}%`,
+                          transform: "translateY(-50%)",
+                        }}
+                      >
                         <div className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-4 h-4 bg-[#FFD54A] rounded-full border-2 border-white shadow-md flex items-center justify-center">
                           <span className="text-[8px] font-bold text-emerald-700">
                             NOW
@@ -318,10 +321,9 @@ export default function Page() {
                           {formatTimeWithAmPm(
                             `${Math.floor(timeRange.min / 60)
                               .toString()
-                              .padStart(
-                                2,
-                                "0",
-                              )}:${(timeRange.min % 60).toString().padStart(2, "0")}`,
+                              .padStart(2, "0")}:${(timeRange.min % 60)
+                              .toString()
+                              .padStart(2, "0")}`,
                           )}
                         </span>
                         <span>
@@ -341,10 +343,9 @@ export default function Page() {
                           {formatTimeWithAmPm(
                             `${Math.floor(timeRange.max / 60)
                               .toString()
-                              .padStart(
-                                2,
-                                "0",
-                              )}:${(timeRange.max % 60).toString().padStart(2, "0")}`,
+                              .padStart(2, "0")}:${(timeRange.max % 60)
+                              .toString()
+                              .padStart(2, "0")}`,
                           )}
                         </span>
                       </div>
@@ -363,31 +364,37 @@ export default function Page() {
                           const dotColor = isCompleted
                             ? "bg-stone-300"
                             : status === "active"
-                              ? "bg-emerald-500"
-                              : status === "passed"
-                                ? "bg-red-500"
-                                : "bg-zinc-400";
+                            ? "bg-emerald-500"
+                            : status === "passed"
+                            ? "bg-red-500"
+                            : "bg-zinc-400";
                           const textColor = isCompleted
                             ? "text-stone-300"
                             : status === "active"
-                              ? "text-zinc-900"
-                              : status === "passed"
-                                ? "text-red-500"
-                                : "text-zinc-500";
+                            ? "text-zinc-900"
+                            : status === "passed"
+                            ? "text-red-500"
+                            : "text-zinc-500";
                           return (
                             <div
-  key={item.id}
-  className="absolute left-0 right-0 flex items-center gap-4 group"
-  style={{ top: `${position}%`, transform: "translateY(-50%)" }}
->
-
+                              key={item.id}
+                              className="absolute left-0 right-0 flex items-center gap-4 group"
+                              style={{
+                                top: `${position}%`,
+                                transform: "translateY(-50%)",
+                              }}
+                            >
                               {/* Colored dot on the line */}
-                              <div className={`absolute left-[9px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full ${dotColor} shadow-sm z-10`} />
+                              <div
+                                className={`absolute left-[9px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full ${dotColor} shadow-sm z-10`}
+                              />
 
                               {/* Content */}
                               <div className="flex-1 ml-8">
                                 <div
-                                  className={`text-[12px] leading-5 ${textColor} ${isCompleted ? "line-through" : ""}`}
+                                  className={`text-[12px] leading-5 ${textColor} ${
+                                    isCompleted ? "line-through" : ""
+                                  }`}
                                 >
                                   {formatItem(item)}
                                 </div>
@@ -559,10 +566,19 @@ export default function Page() {
                               hours24 = hours + 12;
                             if (timeAmPm === "AM" && hours === 12) hours24 = 0;
 
-                            const startTime24 = `${hours24.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+                            const startTime24 = `${hours24
+                              .toString()
+                              .padStart(2, "0")}:${minutes
+                              .toString()
+                              .padStart(2, "0")}`;
 
                             // Calculate endTime as 1 hour after startTime
-                            const calculatedEndTime = startTime24;
+                            const endHours = (hours24 + 1) % 24;
+                            const endTime24 = `${endHours
+                              .toString()
+                              .padStart(2, "0")}:${minutes
+                              .toString()
+                              .padStart(2, "0")}`;
 
                             try {
                               const res = await fetch("/api/schedules", {
@@ -573,7 +589,7 @@ export default function Page() {
                                 body: JSON.stringify({
                                   date: selectedDate || today,
                                   startTime: startTime24,
-                                  endTime: calculatedEndTime,
+                                  endTime: endTime24,
                                   activity,
                                 }),
                               });

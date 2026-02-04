@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '../../../../lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "../../../../lib/prisma";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: { id: string } },
 ) {
   try {
     const { status } = await request.json();
@@ -13,6 +13,26 @@ export async function PUT(
     });
     return NextResponse.json(order);
   } catch (error) {
-    return NextResponse.json({ error: 'Failed to update order' }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to update order" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { id: string } },
+) {
+  try {
+    await prisma.order.delete({
+      where: { id: parseInt(params.id) },
+    });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Failed to delete order" },
+      { status: 500 },
+    );
   }
 }

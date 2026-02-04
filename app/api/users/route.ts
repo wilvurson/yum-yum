@@ -2,22 +2,40 @@ import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    // Check if this is a server-side request (no URL needed)
+    const { searchParams } = new URL(request.url);
+    const email = searchParams.get("email");
+
+    // If email query param is provided, do a direct lookup (for client-side)
+    if (email) {
+      const dbUser = await prisma.user.findUnique({
+        where: { email },
+      });
+
+      if (!dbUser) {
+        return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+
+      return NextResponse.json(dbUser);
+    }
+
+    // Otherwise, use Clerk authentication (for server-side)
     const user = await currentUser();
 
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const email = user.emailAddresses[0]?.emailAddress;
+    const userEmail = user.emailAddresses[0]?.emailAddress;
 
-    if (!email) {
+    if (!userEmail) {
       return NextResponse.json({ error: "Email not found" }, { status: 400 });
     }
 
     const dbUser = await prisma.user.findUnique({
-      where: { email },
+      where: { email: userEmail },
     });
 
     if (!dbUser) {

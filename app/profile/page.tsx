@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Navbar from "../navbar/navber";
+import { useUser, SignOutButton } from "@clerk/nextjs";
 
 type UserData = {
   name: string;
@@ -9,27 +10,20 @@ type UserData = {
 };
 
 export default function Page() {
+  const { user, isLoaded } = useUser();
   const [userName, setUserName] = useState("User");
   const [userEmail, setUserEmail] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("/api/users")
-      .then((res) => res.json())
-      .then((data: UserData) => {
-        if (data.name) {
-          setUserName(data.name);
-        }
-        if (data.email) {
-          setUserEmail(data.email);
-        }
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching user:", err);
-        setLoading(false);
-      });
-  }, []);
+    if (isLoaded && user) {
+      setUserName(user.fullName || user.firstName || "User");
+      setUserEmail(user.primaryEmailAddress?.emailAddress || "");
+      setLoading(false);
+    } else if (isLoaded && !user) {
+      setLoading(false);
+    }
+  }, [isLoaded, user]);
 
   return (
     <div className="min-h-screen bg-white p-8">
@@ -37,25 +31,35 @@ export default function Page() {
         <Navbar />
       </div>
 
-      <div className="px-7 pt-8">
-        <div className="mt-4 flex flex-col gap-8 lg:max-w-4xl">
-          {/* Profile Header */}
-          <div className="flex items-center gap-6">
-            <div className="h-24 w-24 rounded-full bg-[#FFD54A] flex items-center justify-center text-3xl font-bold text-zinc-900">
-              {userName.charAt(0).toUpperCase()}
+      <div className="flex justify-center pt-8">
+        <div className="mt-4 flex flex-col gap-8 lg:max-w-4xl w-full max-w-2xl">
+          {/* Profile Header - Centered */}
+          <div className="flex flex-col items-center text-center gap-6">
+            <div className="relative">
+              {user?.imageUrl ? (
+                <img
+                  src={user.imageUrl}
+                  alt={userName}
+                  className="h-24 w-24 rounded-full object-cover border-4 border-white shadow-lg"
+                />
+              ) : (
+                <div className="h-24 w-24 rounded-full bg-[#FFD54A] flex items-center justify-center text-3xl font-bold text-zinc-900">
+                  {userName.charAt(0).toUpperCase()}
+                </div>
+              )}
             </div>
             <div>
               <h1 className="text-3xl font-extrabold text-zinc-900">
                 {loading ? "Loading..." : userName}
               </h1>
-              <p className="text-sm text-zinc-500">
+              <p className="text-sm text-zinc-500 mt-1">
                 {loading ? "Loading..." : userEmail}
               </p>
             </div>
           </div>
 
-          {/* Profile Sections */}
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          {/* Profile Sections - Centered */}
+          <div className="grid grid-cols-1 gap-6">
             {/* Personal Information */}
             <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
               <div className="flex items-center justify-between">
@@ -174,9 +178,11 @@ export default function Page() {
 
           {/* Sign Out Button */}
           <div className="pt-4">
-            <button className="w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-100">
-              Sign Out
-            </button>
+            <SignOutButton>
+              <button className="w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-100">
+                Sign Out
+              </button>
+            </SignOutButton>
           </div>
         </div>
       </div>

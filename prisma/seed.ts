@@ -107,9 +107,26 @@ async function main() {
     update: {},
     create: {
       userId: clientUser.id,
-      items:
-        '[{"name": "egg", "quantity": 2}, {"name": "bread", "quantity": 1}]',
-      status: "pending",
+      status: "PENDING",
+      totalPrice: 13,
+      items: {
+        create: [
+          {
+            food: {
+              connect: { id: 1 },
+            },
+            quantity: 2,
+            price: 10,
+          },
+          {
+            food: {
+              connect: { id: 2 },
+            },
+            quantity: 1,
+            price: 3,
+          },
+        ],
+      },
     },
   });
 

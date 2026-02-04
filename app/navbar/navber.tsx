@@ -23,6 +23,13 @@ export default function Navbar() {
               </div>
             </div>
           </Link>
+          <Link href="/map">
+            <div className="text-black bg-stone-200 rounded-3xl h-auto">
+              <div className="h-10 flex flex-col justify-center px-10">
+                Map
+              </div>
+            </div>
+          </Link>
           <Link href="/grocery">
             <div className="text-black bg-stone-200 rounded-3xl h-auto">
               <div className="h-10 flex flex-col justify-center px-10">

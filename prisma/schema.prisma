@@ -29,7 +29,8 @@ model Food {
   cuisine    Cuisine? @relation(fields: [cuisineId], references: [id])
   image      String
   price      Decimal  @db.Decimal(4, 2)
-}
+  orderItems OrderItem[]
+} 
 
 model GroceryItem {
   id         Int     @id @default(autoincrement())
@@ -38,6 +39,7 @@ model GroceryItem {
   calPerUnit String
   image      String?
   price      Decimal @db.Decimal(4, 2)
+  orderItems OrderItem[]
 }
 
 model Cuisine {
@@ -66,11 +68,37 @@ model User {
   schedules Schedule[]
 }
 
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  DELIVERING
+  COMPLETED
+  CANCELLED
+}
+
+
 model Order {
-  id        Int      @id @default(autoincrement())
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  items     String
-  status    String   @default("pending")
-  createdAt DateTime @default(now())
+  id         Int          @id @default(autoincrement())
+  userId     Int
+  user       User         @relation(fields: [userId], references: [id])
+  status     OrderStatus  @default(PENDING)
+  totalPrice Int
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  items      OrderItem[]
+  @@index([userId])
+}
+
+model OrderItem {
+  id        Int   @id @default(autoincrement())
+  orderId  Int
+  foodId Int?
+  groceryItemId Int?
+  quantity Int
+  price    Int
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  food  Food?  @relation(fields: [foodId], references: [id])
+  groceryItem GroceryItem? @relation(fields: [groceryItemId], references: [id])
 }

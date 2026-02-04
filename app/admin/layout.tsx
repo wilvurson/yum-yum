@@ -1,28 +1,32 @@
-"use client";
+import { currentUser } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { prisma } from "../../lib/prisma";
+import { AdminLayoutClient } from "./layout-client";
 
-import { useState } from "react";
-import { AppSidebar } from "./app-sidebar";
-
-export default function AdminLayout({
+export default async function AdminLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const user = await currentUser();
 
-  return (
-    <div className="flex min-h-screen">
-      <AppSidebar
-        open={sidebarOpen}
-        onToggle={() => setSidebarOpen(!sidebarOpen)}
-      />
-      <main
-        className={`flex-1 transition-all duration-300 ease-in-out ${
-          sidebarOpen ? "ml-64" : "ml-16"
-        }`}
-      >
-        <div className="p-6">{children}</div>
-      </main>
-    </div>
-  );
+  if (!user) {
+    redirect("/");
+  }
+
+  const email = user.emailAddresses[0]?.emailAddress;
+
+  if (!email) {
+    redirect("/");
+  }
+
+  const dbUser = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!dbUser || !dbUser.isAdmin) {
+    redirect("/");
+  }
+
+  return <AdminLayoutClient>{children}</AdminLayoutClient>;
 }

@@ -2,6 +2,7 @@
 
 import {
   Home,
+  Van,
   Utensils,
   ShoppingBasket,
   MapPin,
@@ -17,7 +18,7 @@ const navItems = [
   {
     title: "order",
     href: "/admin/order",
-    icon: Home,
+    icon: Van,
   },
   {
     title: "Create",
@@ -32,7 +33,7 @@ const navItems = [
   {
     title: "Back to dashboard",
     href: "/home",
-    icon: ShoppingBasket,
+    icon: Home,
   }
 ];
 

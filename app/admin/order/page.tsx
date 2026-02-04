@@ -26,7 +26,10 @@ interface Order {
   createdAt: string;
 }
 
-function formatOrderItems(items: string | OrderItem[]) {
+function formatOrderItems(items: string | OrderItem[] | undefined | null) {
+  if (!items || typeof items === "undefined" || items === null) {
+    return "No items";
+  }
   if (typeof items === "string") {
     try {
       const parsed = JSON.parse(items);
@@ -42,7 +45,10 @@ function formatOrderItems(items: string | OrderItem[]) {
     .join(", ");
 }
 
-function getOrderTotal(items: string | OrderItem[]) {
+function getOrderTotal(items: string | OrderItem[] | undefined | null) {
+  if (!items || typeof items === "undefined" || items === null) {
+    return 0;
+  }
   if (typeof items === "string") {
     try {
       const parsed = JSON.parse(items);

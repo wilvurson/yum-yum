@@ -3,12 +3,13 @@ import { prisma } from "../../../../lib/prisma";
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { status } = await request.json();
+    const { id } = await params;
     const order = await prisma.order.update({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
       data: { status },
     });
     return NextResponse.json(order);
@@ -22,11 +23,12 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await params;
     await prisma.order.delete({
-      where: { id: parseInt(params.id) },
+      where: { id: parseInt(id) },
     });
     return NextResponse.json({ success: true });
   } catch (error) {

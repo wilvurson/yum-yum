@@ -194,9 +194,7 @@ export default function Page() {
       : { min: 0, max: 1440 };
 
   const formatItem = (item: ScheduleItem) => {
-    return `[ ${formatTimeWithAmPm(item.startTime)} - ${formatTimeWithAmPm(
-      item.endTime,
-    )} ] ${item.activity}`;
+    return `${formatTimeWithAmPm(item.startTime)} ${item.activity}`;
   };
 
   return (

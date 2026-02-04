@@ -126,17 +126,74 @@ export default function Page() {
   };
 
   // Get time status: 'active' (current), 'passed' (past), or 'future'
+  // Get time status: 'active' (from start until +1 min), 'passed' (after +1 min), or 'future'
   const getTimeStatus = (
     item: ScheduleItem,
   ): "active" | "passed" | "future" => {
-    if (currentTime > item.startTime && currentTime < item.endTime)
-      return "active";
-    if (currentTime >= item.endTime) return "passed";
+    const now = new Date();
+
+    const [startHours, startMinutes] = item.startTime.split(":").map(Number);
+    const startTimeDate = new Date();
+    startTimeDate.setHours(startHours, startMinutes, 0, 0);
+
+    const passedTime = new Date(startTimeDate.getTime() + 60000); // +1 minute
+
+    if (now >= passedTime) return "passed";
+    if (now >= startTimeDate) return "active";
     return "future";
   };
 
+  // Convert time (HH:MM) to position percentage (0-100) for timeline
+  // Based on the schedule's time range
+  const getItemPosition = (time: string, minTime: number, maxTime: number): number => {
+  const [hours, minutes] = time.split(":").map(Number);
+  const totalMinutes = hours * 60 + minutes;
+
+  const range = maxTime - minTime;
+  if (range <= 0) return 0;
+
+  const pct = ((totalMinutes - minTime) / range) * 100;
+  return Math.max(0, Math.min(100, pct));
+};
+
+
+  // Get current time position for NOW marker
+  // Based on the schedule's time range
+  const getNowPosition = (minTime: number, maxTime: number): number => {
+  const now = new Date();
+  const totalMinutes =
+    now.getHours() * 60 + now.getMinutes() + now.getSeconds() / 60;
+
+  const range = maxTime - minTime;
+  if (range <= 0) return 0;
+
+  const pct = ((totalMinutes - minTime) / range) * 100;
+  return Math.max(0, Math.min(100, pct));
+};
+
+
+  // Calculate time range from schedule
+  const timeRange =
+    schedule.length > 0
+      ? {
+          min: Math.min(
+            ...schedule.map((s) => {
+              const [h, m] = s.startTime.split(":").map(Number);
+              return h * 60 + m;
+            }),
+          ),
+          max:
+            Math.max(
+              ...schedule.map((s) => {
+                const [h, m] = s.startTime.split(":").map(Number);
+                return h * 60 + m;
+              }),
+            ) + 60, // Add 1 hour buffer
+        }
+      : { min: 0, max: 1440 };
+
   const formatItem = (item: ScheduleItem) => {
-    return `${formatTimeWithAmPm(item.startTime)} - [${item.activity}`;
+    return `[ ${formatTimeWithAmPm(item.startTime)} ] - [ ${item.activity} ]`;
   };
 
   return (
@@ -228,20 +285,81 @@ export default function Page() {
                   </button>
                 </div>
 
-                {/* Timeline list - Messenger style */}
-                <div className="mt-5">
+                {/* Timeline list - Real-time timeline */}
+                <div className="mt-5 relative">
                   {schedule.length === 0 ? (
                     <p className="text-sm text-zinc-500 text-center py-4">
                       No activities for this date
                     </p>
                   ) : (
-                    <div className="relative">
+                    <div className="relative pl-10 h-[320px]">
+                      {/* Constant vertical line */}
+                      <div className="absolute left-[9px] top-2 bottom-2 w-0.5 bg-zinc-200" />
+
+                      {/* NOW marker - moves in real time */}
+                      <div
+  className="absolute left-0 right-0 h-0.5 bg-[#FFD54A] z-20 pointer-events-none"
+  style={{
+    top: `${getNowPosition(timeRange.min, timeRange.max)}%`,
+    transform: "translateY(-50%)",
+  }}
+>
+
+                        <div className="absolute left-[-8px] top-1/2 -translate-y-1/2 w-4 h-4 bg-[#FFD54A] rounded-full border-2 border-white shadow-md flex items-center justify-center">
+                          <span className="text-[8px] font-bold text-emerald-700">
+                            NOW
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Time labels on left */}
+                      <div className="absolute left-[-45px] top-0 bottom-0 flex flex-col justify-between py-2 text-[10px] text-zinc-400">
+                        <span>
+                          {formatTimeWithAmPm(
+                            `${Math.floor(timeRange.min / 60)
+                              .toString()
+                              .padStart(
+                                2,
+                                "0",
+                              )}:${(timeRange.min % 60).toString().padStart(2, "0")}`,
+                          )}
+                        </span>
+                        <span>
+                          {formatTimeWithAmPm(
+                            `${Math.floor(
+                              (timeRange.min + timeRange.max) / 2 / 60,
+                            )
+                              .toString()
+                              .padStart(2, "0")}:${Math.floor(
+                              ((timeRange.min + timeRange.max) / 2) % 60,
+                            )
+                              .toString()
+                              .padStart(2, "0")}`,
+                          )}
+                        </span>
+                        <span>
+                          {formatTimeWithAmPm(
+                            `${Math.floor(timeRange.max / 60)
+                              .toString()
+                              .padStart(
+                                2,
+                                "0",
+                              )}:${(timeRange.max % 60).toString().padStart(2, "0")}`,
+                          )}
+                        </span>
+                      </div>
+
+                      {/* Schedule items positioned by time */}
                       {[...schedule]
                         .sort((a, b) => a.startTime.localeCompare(b.startTime))
                         .map((item, idx) => {
-                          const isLast = idx === schedule.length - 1;
                           const status = getTimeStatus(item);
                           const isCompleted = item.completed;
+                          const position = getItemPosition(
+                            item.startTime,
+                            timeRange.min,
+                            timeRange.max,
+                          );
                           const dotColor = isCompleted
                             ? "bg-stone-300"
                             : status === "active"
@@ -258,19 +376,14 @@ export default function Page() {
                                 : "text-zinc-500";
                           return (
                             <div
-                              key={idx}
-                              className="relative flex items-start gap-4 py-2 group"
-                            >
-                              {/* Vertical line - connect dots */}
-                              {!isLast && (
-                                <div
-                                  className={`absolute left-[10px] top-5 -bottom-2 w-1 h-10 ${dotColor}`}
-                                />
-                              )}
-                              {/* Colored dot */}
-                              <div
-                                className={`absolute left-[7px] top-3 w-2.5 h-2.5 rounded-full ${dotColor} shadow-sm z-10`}
-                              />
+  key={item.id}
+  className="absolute left-0 right-0 flex items-center gap-4 group"
+  style={{ top: `${position}%`, transform: "translateY(-50%)" }}
+>
+
+                              {/* Colored dot on the line */}
+                              <div className={`absolute left-[9px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full ${dotColor} shadow-sm z-10`} />
+
                               {/* Content */}
                               <div className="flex-1 ml-8">
                                 <div
@@ -449,8 +562,7 @@ export default function Page() {
                             const startTime24 = `${hours24.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
 
                             // Calculate endTime as 1 hour after startTime
-                            const endHour = (hours24 + 1) % 24;
-                            const calculatedEndTime = `${endHour.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}`;
+                            const calculatedEndTime = startTime24;
 
                             try {
                               const res = await fetch("/api/schedules", {

@@ -11,54 +11,38 @@ interface User {
 }
 interface OrderItem {
   id: number;
-  name: string;
-  price: number;
+  foodId: number | null;
+  groceryItemId: number | null;
   quantity: number;
-  image: string;
+  price: number;
+  food: { id: number; name: string; image: string } | null;
+  groceryItem: { id: number; name: string; image: string } | null;
 }
 
 interface Order {
   id: number;
   userId: number;
   user: User;
-  items: string | OrderItem[];
+  items: OrderItem[];
   status: string;
   createdAt: string;
 }
 
-function formatOrderItems(items: string | OrderItem[] | undefined | null) {
-  if (!items || typeof items === "undefined" || items === null) {
+function formatOrderItems(items: OrderItem[] | undefined | null) {
+  if (!items || items === null) {
     return "No items";
   }
-  if (typeof items === "string") {
-    try {
-      const parsed = JSON.parse(items);
-      return parsed
-        .map((item: OrderItem) => `${item.name} x${item.quantity}`)
-        .join(", ");
-    } catch {
-      return items;
-    }
-  }
   return items
-    .map((item: OrderItem) => `${item.name} x${item.quantity}`)
+    .map((item: OrderItem) => {
+      const name = item.food?.name || item.groceryItem?.name || "Unknown";
+      return `${name} x${item.quantity}`;
+    })
     .join(", ");
 }
 
-function getOrderTotal(items: string | OrderItem[] | undefined | null) {
-  if (!items || typeof items === "undefined" || items === null) {
+function getOrderTotal(items: OrderItem[] | undefined | null) {
+  if (!items || items === null) {
     return 0;
-  }
-  if (typeof items === "string") {
-    try {
-      const parsed = JSON.parse(items);
-      return parsed.reduce(
-        (sum: number, item: OrderItem) => sum + item.price * item.quantity,
-        0,
-      );
-    } catch {
-      return 0;
-    }
   }
   return items.reduce(
     (sum: number, item: OrderItem) => sum + item.price * item.quantity,

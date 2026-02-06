@@ -28,6 +28,12 @@ export async function GET() {
     const orders = await prisma.order.findMany({
       include: {
         user: true,
+        items: {
+          include: {
+            food: true,
+            groceryItem: true,
+          },
+        },
       },
     });
     return NextResponse.json(orders);
@@ -42,6 +48,16 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const { userId, items, status, totalPrice } = await request.json();
+
+    // Parse items if it's a JSON string
+    let orderItems = items;
+    if (typeof items === "string") {
+      try {
+        orderItems = JSON.parse(items);
+      } catch {
+        orderItems = [];
+      }
+    }
 
     // Convert status to uppercase and validate against OrderStatus enum
     const orderStatus = status
@@ -70,14 +86,17 @@ export async function POST(request: NextRequest) {
     });
 
     // Then create order items if provided
-    if (items && Array.isArray(items) && items.length > 0) {
+    if (orderItems && Array.isArray(orderItems) && orderItems.length > 0) {
       await prisma.orderItem.createMany({
-        data: items.map((item: any) => ({
+        data: orderItems.map((item: any) => ({
           orderId: order.id,
-          foodId: item.foodId || null,
-          groceryItemId: item.groceryItemId || null,
+          foodId: item.id || null,
+          groceryItemId: null, // Cart items are food items
           quantity: item.quantity,
-          price: item.price,
+          price:
+            typeof item.price === "string"
+              ? parseInt(item.price, 10)
+              : Math.round(item.price),
         })),
       });
     }

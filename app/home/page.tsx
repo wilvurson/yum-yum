@@ -14,6 +14,8 @@ type ScheduleItem = {
 
 type UserData = {
   name: string;
+  streak?: number;
+  points?: number;
 };
 
 export default function Page() {
@@ -26,6 +28,11 @@ export default function Page() {
   const [currentTime, setCurrentTime] = useState("");
   const [userName, setUserName] = useState("User");
   const [selectedDate, setSelectedDate] = useState<string>("");
+  const [streak, setStreak] = useState(0);
+  const [points, setPoints] = useState(0);
+  const [leaderboard, setLeaderboard] = useState<
+    Array<{ id: number; name: string; points: number; rank: number }>
+  >([]);
 
   // Force re-render every second to update time-based colors
   const [, setTick] = useState(0);
@@ -55,8 +62,35 @@ export default function Page() {
         if (data.name) {
           setUserName(data.name);
         }
+        if (data.streak !== undefined) {
+          setStreak(data.streak);
+        }
+        if (data.points !== undefined) {
+          setPoints(data.points);
+        }
       })
       .catch((err) => console.error("Error ensuring user:", err));
+
+    // Update streak and points on daily visit
+    fetch("/api/users/streak", { method: "POST" })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.streak !== undefined) {
+          setStreak(data.streak);
+        }
+        if (data.points !== undefined) {
+          setPoints(data.points);
+        }
+      })
+      .catch((err) => console.error("Error updating streak:", err));
+
+    // Fetch leaderboard data
+    fetch("/api/leaderboard")
+      .then((res) => res.json())
+      .then((data) => {
+        setLeaderboard(data);
+      })
+      .catch((err) => console.error("Error fetching leaderboard:", err));
 
     // Set initial selected date and fetch schedules
     setSelectedDate(today);
@@ -219,6 +253,29 @@ export default function Page() {
                 ? "You have no activities today"
                 : `You have ${schedule.length} activities today`}
             </p>
+            {/* Streak and Points Display */}
+            <div className="mt-3 flex gap-3">
+              <div className="flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-400 to-amber-500 px-4 py-2 shadow-md">
+                <span className="text-lg">🔥</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-semibold text-white uppercase tracking-wide">
+                    Streak
+                  </span>
+                  <span className="text-lg font-bold text-white">
+                    {streak} day{streak !== 1 ? "s" : ""}
+                  </span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 px-4 py-2 shadow-md">
+                <span className="text-lg">⭐</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-semibold text-white uppercase tracking-wide">
+                    Points
+                  </span>
+                  <span className="text-lg font-bold text-white">{points}</span>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div className="flex w-full max-w-xl items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-800 px-4 py-3">
@@ -808,60 +865,68 @@ export default function Page() {
                 <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   Leaderboard
                 </div>
-                <button className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
+                <a
+                  href="/leaderboard"
+                  className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                >
                   See all
-                </button>
+                </a>
               </div>
 
               <div className="space-y-3">
-                {[
-                  {
-                    name: "Alex",
-                    score: 1250,
-                    rank: 1,
-                    color: "bg-amber-100 dark:bg-amber-900/40",
-                  },
-                  {
-                    name: "Sam",
-                    score: 980,
-                    rank: 2,
-                    color: "bg-zinc-100 dark:bg-zinc-700/40",
-                  },
-                  {
-                    name: "Jordan",
-                    score: 870,
-                    rank: 3,
-                    color: "bg-orange-100 dark:bg-orange-900/40",
-                  },
-                  {
-                    name: "You",
-                    score: 720,
-                    rank: 4,
-                    color: "bg-lime-100 dark:bg-lime-900/40",
-                  },
-                ].map((user) => (
-                  <div
-                    key={user.rank}
-                    className="flex items-center gap-3 rounded-xl bg-zinc-50/50 dark:bg-zinc-800/50 p-2"
-                  >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-zinc-600 dark:text-zinc-400">
-                      {user.rank}
-                    </div>
+                {leaderboard.length === 0 ? (
+                  <div className="text-center py-4 text-sm text-zinc-500 dark:text-zinc-400">
+                    Loading leaderboard...
+                  </div>
+                ) : (
+                  leaderboard.slice(0, 5).map((user) => (
                     <div
-                      className={`flex h-8 w-8 items-center justify-center rounded-full ${user.color}`}
+                      key={user.id}
+                      className="flex items-center gap-3 rounded-xl bg-zinc-50/50 dark:bg-zinc-800/50 p-2"
                     >
-                      👤
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                        {user.name}
+                      <div
+                        className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold ${
+                          user.rank === 1
+                            ? "bg-amber-400 text-white"
+                            : user.rank === 2
+                            ? "bg-gray-400 text-white"
+                            : user.rank === 3
+                            ? "bg-orange-400 text-white"
+                            : "bg-zinc-200 dark:bg-zinc-600 text-zinc-600 dark:text-zinc-400"
+                        }`}
+                      >
+                        {user.rank === 1
+                          ? "🥇"
+                          : user.rank === 2
+                          ? "🥈"
+                          : user.rank === 3
+                          ? "🥉"
+                          : user.rank}
+                      </div>
+                      <div
+                        className={`flex h-8 w-8 items-center justify-center rounded-full ${
+                          user.rank === 1
+                            ? "bg-amber-100 dark:bg-amber-900/40"
+                            : user.rank === 2
+                            ? "bg-gray-100 dark:bg-gray-700/40"
+                            : user.rank === 3
+                            ? "bg-orange-100 dark:bg-orange-900/40"
+                            : "bg-zinc-100 dark:bg-zinc-700/40"
+                        }`}
+                      >
+                        👤
+                      </div>
+                      <div className="flex-1">
+                        <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                          {user.name}
+                        </div>
+                      </div>
+                      <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
+                        {user.points}
                       </div>
                     </div>
-                    <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
-                      {user.score}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
             </section>
 
@@ -871,9 +936,12 @@ export default function Page() {
                 <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   Add friends
                 </div>
-                <button className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
+                <a
+                  href="/friends"
+                  className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
+                >
                   See all
-                </button>
+                </a>
               </div>
 
               <div className="space-y-3">

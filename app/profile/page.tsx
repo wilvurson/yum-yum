@@ -26,7 +26,7 @@ export default function Page() {
   }, [isLoaded, user]);
 
   return (
-    <div className="min-h-screen bg-white p-8">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 dark:text-white p-8">
       <div className="px-7 pt-6">
         <Navbar />
       </div>
@@ -40,7 +40,7 @@ export default function Page() {
                 <img
                   src={user.imageUrl}
                   alt={userName}
-                  className="h-24 w-24 rounded-full object-cover border-4 border-white shadow-lg"
+                  className="h-24 w-24 rounded-full object-cover border-4 border-white dark:border-zinc-800 shadow-lg"
                 />
               ) : (
                 <div className="h-24 w-24 rounded-full bg-[#FFD54A] flex items-center justify-center text-3xl font-bold text-zinc-900">
@@ -49,7 +49,7 @@ export default function Page() {
               )}
             </div>
             <div>
-              <h1 className="text-3xl font-extrabold text-zinc-900">
+              <h1 className="text-3xl font-extrabold text-zinc-900 dark:text-white">
                 {loading ? "Loading..." : userName}
               </h1>
               <p className="text-sm text-zinc-500 mt-1">
@@ -61,12 +61,12 @@ export default function Page() {
           {/* Profile Sections - Centered */}
           <div className="grid grid-cols-1 gap-6">
             {/* Personal Information */}
-            <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+            <section className="rounded-[28px] bg-white dark:bg-zinc-900  p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-zinc-900">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
                   Personal Information
                 </h3>
-                <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
+                <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700">
                   ✏️
                 </button>
               </div>
@@ -80,7 +80,7 @@ export default function Page() {
                     type="text"
                     value={userName}
                     readOnly
-                    className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none text-zinc-900"
+                    className="w-full rounded-lg border dark:bg-zinc-800 dark:border-zinc-500 dark:text-white border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none text-zinc-900"
                   />
                 </div>
                 <div>
@@ -91,33 +91,33 @@ export default function Page() {
                     type="email"
                     value={userEmail}
                     readOnly
-                    className="w-full rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none text-zinc-900"
+                    className="w-full rounded-lg border dark:bg-zinc-800 dark:border-zinc-500 dark:text-white border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none text-zinc-900"
                   />
                 </div>
               </div>
             </section>
 
             {/* Account Settings */}
-            <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+            <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-zinc-900">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
                   Account Settings
                 </h3>
-                <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
+                <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700">
                   ⚙️
                 </button>
               </div>
 
               <div className="mt-6 space-y-3">
-                <button className="flex w-full items-center justify-between rounded-xl bg-zinc-50 px-4 py-3 text-sm text-zinc-700 hover:bg-zinc-100">
+                <button className="flex w-full items-center justify-between rounded-xl bg-zinc-50 dark:bg-zinc-800 px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700">
                   <span>Change Password</span>
                   <span>→</span>
                 </button>
-                <button className="flex w-full items-center justify-between rounded-xl bg-zinc-50 px-4 py-3 text-sm text-zinc-700 hover:bg-zinc-100">
+                <button className="flex w-full items-center justify-between rounded-xl bg-zinc-50 dark:bg-zinc-800 px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700">
                   <span>Notification Preferences</span>
                   <span>→</span>
                 </button>
-                <button className="flex w-full items-center justify-between rounded-xl bg-zinc-50 px-4 py-3 text-sm text-zinc-700 hover:bg-zinc-100">
+                <button className="flex w-full items-center justify-between rounded-xl bg-zinc-50 dark:bg-zinc-800 px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700">
                   <span>Privacy Settings</span>
                   <span>→</span>
                 </button>
@@ -125,52 +125,60 @@ export default function Page() {
             </section>
 
             {/* Activity Stats */}
-            <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+            <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
               <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-zinc-900">
+                <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
                   Activity Stats
                 </h3>
-                <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
+                <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700">
                   📊
                 </button>
               </div>
 
               <div className="mt-6 grid grid-cols-2 gap-3">
-                <div className="rounded-2xl bg-lime-50 p-4">
-                  <div className="text-xs font-semibold text-zinc-700">
+                <div className="rounded-2xl bg-lime-50 dark:bg-lime-950/40 p-4">
+                  <div className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                     Active Days
                   </div>
-                  <div className="mt-2 text-lg font-extrabold text-zinc-900">
+                  <div className="mt-2 text-lg font-extrabold text-zinc-900 dark:text-white">
                     24
                   </div>
-                  <div className="text-[10px] text-zinc-500">this month</div>
+                  <div className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                    this month
+                  </div>
                 </div>
-                <div className="rounded-2xl bg-sky-50 p-4">
-                  <div className="text-xs font-semibold text-zinc-700">
+                <div className="rounded-2xl bg-sky-50 dark:bg-sky-950/40 p-4">
+                  <div className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                     Total Activities
                   </div>
-                  <div className="mt-2 text-lg font-extrabold text-zinc-900">
+                  <div className="mt-2 text-lg font-extrabold text-zinc-900 dark:text-white">
                     156
                   </div>
-                  <div className="text-[10px] text-zinc-500">all time</div>
+                  <div className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                    all time
+                  </div>
                 </div>
-                <div className="rounded-2xl bg-purple-50 p-4">
-                  <div className="text-xs font-semibold text-zinc-700">
+                <div className="rounded-2xl bg-purple-50 dark:bg-purple-950/40 p-4">
+                  <div className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                     Streak
                   </div>
-                  <div className="mt-2 text-lg font-extrabold text-zinc-900">
+                  <div className="mt-2 text-lg font-extrabold text-zinc-900 dark:text-white">
                     7 days
                   </div>
-                  <div className="text-[10px] text-zinc-500">keep it up!</div>
+                  <div className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                    keep it up!
+                  </div>
                 </div>
-                <div className="rounded-2xl bg-amber-50 p-4">
-                  <div className="text-xs font-semibold text-zinc-700">
+                <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/40 p-4">
+                  <div className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                     Completed
                   </div>
-                  <div className="mt-2 text-lg font-extrabold text-zinc-900">
+                  <div className="mt-2 text-lg font-extrabold text-zinc-900 dark:text-white">
                     89%
                   </div>
-                  <div className="text-[10px] text-zinc-500">success rate</div>
+                  <div className="text-[10px] text-zinc-500 dark:text-zinc-400">
+                    success rate
+                  </div>
                 </div>
               </div>
             </section>
@@ -179,7 +187,7 @@ export default function Page() {
           {/* Sign Out Button */}
           <div className="pt-4">
             <SignOutButton>
-              <button className="w-full rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-100">
+              <button className="w-full rounded-xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-950/40 px-4 py-3 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/60">
                 Sign Out
               </button>
             </SignOutButton>

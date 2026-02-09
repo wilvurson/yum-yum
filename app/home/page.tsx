@@ -198,7 +198,7 @@ export default function Page() {
   };
 
   return (
-    <div className="min-h-screen bg-white p-8 text-black">
+    <div className="min-h-screen bg-white dark:bg-zinc-950 p-8 text-black dark:text-white transition-colors">
       {/* Navbar */}
       <div className="px-7 pt-6">
         <Navbar />
@@ -206,27 +206,27 @@ export default function Page() {
 
       {/* Greeting + Search */}
       <div className="px-7 pt-4">
-        <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between white">
+        <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-4xl font-extrabold tracking-tight text-zinc-900">
-              Hello <span className="text-zinc-900">"{userName}"</span>
+            <h1 className="text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
+              Hello{" "}
+              <span className="text-zinc-900 dark:text-zinc-100">
+                "{userName}"
+              </span>
             </h1>
-            <p className="mt-1 text-sm text-zinc-500">
+            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
               {schedule.length === 0
                 ? "You have no activities today"
                 : `You have ${schedule.length} activities today`}
             </p>
           </div>
 
-          <div className="flex w-full max-w-xl items-center gap-2 rounded-full bg-zinc-100 px-4 py-3">
-            <span className="text-zinc-400">🔎</span>
+          <div className="flex w-full max-w-xl items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-800 px-4 py-3">
+            <span className="text-zinc-400 dark:text-zinc-500">🔎</span>
             <input
-              className="w-full bg-transparent text-sm outline-none placeholder:text-zinc-400"
+              className="w-full bg-transparent text-sm outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100"
               placeholder="Search by recipes and more"
             />
-            <button className="grid h-8 w-8 place-items-center rounded-full bg-white shadow-sm">
-              🎛️
-            </button>
           </div>
         </div>
       </div>
@@ -238,14 +238,14 @@ export default function Page() {
           <div className="flex-1 white">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[360px_1fr]">
               {/* LEFT: Schedule */}
-              <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+              <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-zinc-900">
+                  <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                     View today's schedule
                   </h3>
                   <button
                     onClick={() => setShowForm(!showForm)}
-                    className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200"
+                    className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
                   >
                     ✏️
                   </button>
@@ -253,7 +253,7 @@ export default function Page() {
 
                 {/* Date pills */}
                 <div className="mt-4 flex items-center justify-between gap-2">
-                  <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
+                  <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">
                     ‹
                   </button>
 
@@ -268,20 +268,20 @@ export default function Page() {
                             ? "bg-[#FFD54A] text-emerald-700"
                             : d.isToday
                             ? "bg-lime-400"
-                            : "bg-zinc-100 hover:bg-zinc-200",
+                            : "bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700",
                         ].join(" ")}
                       >
-                        <div className="text-sm font-semibold text-zinc-900">
+                        <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                           {d.day}
                         </div>
-                        <div className="text-[11px] text-zinc-500">
+                        <div className="text-[11px] text-zinc-500 dark:text-zinc-400">
                           {d.shortDay}
                         </div>
                       </button>
                     ))}
                   </div>
 
-                  <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
+                  <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">
                     ›
                   </button>
                 </div>
@@ -289,13 +289,13 @@ export default function Page() {
                 {/* Timeline list - Real-time timeline */}
                 <div className="mt-5 relative">
                   {schedule.length === 0 ? (
-                    <p className="text-sm text-zinc-500 text-center py-4">
+                    <p className="text-sm text-zinc-500 dark:text-zinc-400 text-center py-4">
                       No activities for this date
                     </p>
                   ) : (
                     <div className="relative pl-10 h-[320px]">
                       {/* Constant vertical line */}
-                      <div className="absolute left-[9px] top-2 bottom-2 w-0.5 bg-zinc-200" />
+                      <div className="absolute left-[9px] top-2 bottom-2 w-0.5 bg-zinc-200 dark:bg-zinc-700" />
 
                       {/* NOW marker - moves in real time */}
                       <div
@@ -316,7 +316,7 @@ export default function Page() {
                       </div>
 
                       {/* Time labels on left */}
-                      <div className="absolute left-[-45px] top-0 bottom-0 flex flex-col justify-between py-2 text-[10px] text-zinc-400">
+                      <div className="absolute left-[-45px] top-0 bottom-0 flex flex-col justify-between py-2 text-[10px] text-zinc-400 dark:text-zinc-500">
                         <span>
                           {formatTimeWithAmPm(
                             `${Math.floor(timeRange.min / 60)
@@ -362,19 +362,19 @@ export default function Page() {
                             timeRange.max,
                           );
                           const dotColor = isCompleted
-                            ? "bg-stone-300"
+                            ? "bg-stone-300 dark:bg-stone-600"
                             : status === "active"
                             ? "bg-emerald-500"
                             : status === "passed"
                             ? "bg-red-500"
-                            : "bg-zinc-400";
+                            : "bg-zinc-400 dark:bg-zinc-600";
                           const textColor = isCompleted
-                            ? "text-stone-300"
+                            ? "text-stone-300 dark:text-stone-500"
                             : status === "active"
-                            ? "text-zinc-900"
+                            ? "text-zinc-900 dark:text-zinc-100"
                             : status === "passed"
                             ? "text-red-500"
-                            : "text-zinc-500";
+                            : "text-zinc-500 dark:text-zinc-400";
                           return (
                             <div
                               key={item.id}
@@ -460,7 +460,7 @@ export default function Page() {
                                       console.error(err);
                                     }
                                   }}
-                                  className="text-zinc-400 hover:text-red-500"
+                                  className="text-zinc-400 hover:text-red-500 dark:text-zinc-500 dark:hover:text-red-400"
                                 >
                                   ✕
                                 </button>
@@ -474,10 +474,10 @@ export default function Page() {
 
                 {/* Add item form */}
                 {showForm && (
-                  <div className="mt-5 rounded-2xl bg-white border border-zinc-200 p-4 shadow-sm transition-all duration-300 ease-in-out">
+                  <div className="mt-5 rounded-2xl bg-white dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 p-4 shadow-sm transition-all duration-300 ease-in-out">
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-zinc-700 mb-1">
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                           Time
                         </label>
                         <div className="flex items-center gap-2">
@@ -497,9 +497,11 @@ export default function Page() {
                               }
                             }}
                             placeholder="HH"
-                            className="w-14 rounded-lg border border-zinc-300 bg-zinc-50 px-2 py-2 text-center text-sm outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF]"
+                            className="w-14 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700 px-2 py-2 text-center text-sm outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF] text-zinc-900 dark:text-zinc-100"
                           />
-                          <span className="text-zinc-500">:</span>
+                          <span className="text-zinc-500 dark:text-zinc-400">
+                            :
+                          </span>
                           <input
                             id="time-minutes"
                             type="text"
@@ -512,21 +514,21 @@ export default function Page() {
                               setTimeMinutes(val);
                             }}
                             placeholder="MM"
-                            className="w-14 rounded-lg border border-zinc-300 bg-zinc-50 px-2 py-2 text-center text-sm outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF]"
+                            className="w-14 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700 px-2 py-2 text-center text-sm outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF] text-zinc-900 dark:text-zinc-100"
                           />
                           <button
                             type="button"
                             onClick={() =>
                               setTimeAmPm(timeAmPm === "AM" ? "PM" : "AM")
                             }
-                            className="rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm font-medium outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF]"
+                            className="rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700 px-3 py-2 text-sm font-medium outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF] text-zinc-900 dark:text-zinc-100"
                           >
                             {timeAmPm}
                           </button>
                         </div>
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-zinc-700 mb-1">
+                        <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-1">
                           Activity
                         </label>
                         <input
@@ -534,13 +536,13 @@ export default function Page() {
                           value={activity}
                           onChange={(e) => setActivity(e.target.value)}
                           placeholder="Enter activity"
-                          className="w-full rounded-lg border border-zinc-300 bg-zinc-50 px-3 py-2 text-sm outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF]"
+                          className="w-full rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700 px-3 py-2 text-sm outline-none focus:border-[#7B61FF] focus:ring-1 focus:ring-[#7B61FF] text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 dark:placeholder:text-zinc-500"
                         />
                       </div>
                       <div className="flex gap-2">
                         <button
                           onClick={() => setShowForm(false)}
-                          className="flex-1 rounded-lg border border-zinc-300 bg-zinc-50 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100"
+                          className="flex-1 rounded-lg border border-zinc-300 dark:border-zinc-600 bg-zinc-50 dark:bg-zinc-700 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-600"
                         >
                           Cancel
                         </button>
@@ -619,63 +621,63 @@ export default function Page() {
               {/* CENTER: Cards */}
               <div className="space-y-6">
                 {/* Report */}
-                <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+                <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm font-semibold text-zinc-900">
+                      <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                         Report
                       </div>
-                      <div className="text-xs text-zinc-500">
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
                         Goals this week
                       </div>
                     </div>
-                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
+                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">
                       ⋯
                     </button>
                   </div>
 
                   <div className="mt-4 grid grid-cols-2 gap-3">
-                    <div className="rounded-2xl bg-sky-50 p-4">
-                      <div className="text-xs font-semibold text-zinc-700">
+                    <div className="rounded-2xl bg-sky-50 dark:bg-sky-950/30 p-4">
+                      <div className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                         Water
                       </div>
-                      <div className="mt-6 text-lg font-extrabold text-zinc-900">
+                      <div className="mt-6 text-lg font-extrabold text-zinc-900 dark:text-zinc-100">
                         2500ml
                       </div>
-                      <div className="mt-1 text-[11px] text-zinc-500">
+                      <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
                         Goal: 3L
                       </div>
                     </div>
-                    <div className="rounded-2xl bg-amber-50 p-4">
-                      <div className="text-xs font-semibold text-zinc-700">
+                    <div className="rounded-2xl bg-amber-50 dark:bg-amber-950/30 p-4">
+                      <div className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                         Weight
                       </div>
-                      <div className="mt-6 text-lg font-extrabold text-zinc-900">
+                      <div className="mt-6 text-lg font-extrabold text-zinc-900 dark:text-zinc-100">
                         62kg
                       </div>
-                      <div className="mt-1 text-[11px] text-zinc-500">
+                      <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
                         Goal: 0kg
                       </div>
                     </div>
-                    <div className="rounded-2xl bg-lime-50 p-4">
-                      <div className="text-xs font-semibold text-zinc-700">
+                    <div className="rounded-2xl bg-lime-50 dark:bg-lime-950/30 p-4">
+                      <div className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                         BPM
                       </div>
-                      <div className="mt-6 text-lg font-extrabold text-zinc-900">
+                      <div className="mt-6 text-lg font-extrabold text-zinc-900 dark:text-zinc-100">
                         72
                       </div>
-                      <div className="mt-1 text-[11px] text-zinc-500">
+                      <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
                         Goal: 2000kcal
                       </div>
                     </div>
-                    <div className="rounded-2xl bg-rose-50 p-4">
-                      <div className="text-xs font-semibold text-zinc-700">
+                    <div className="rounded-2xl bg-rose-50 dark:bg-rose-950/30 p-4">
+                      <div className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
                         Sleep
                       </div>
-                      <div className="mt-6 text-lg font-extrabold text-zinc-900">
+                      <div className="mt-6 text-lg font-extrabold text-zinc-900 dark:text-zinc-100">
                         8h
                       </div>
-                      <div className="mt-1 text-[11px] text-zinc-500">
+                      <div className="mt-1 text-[11px] text-zinc-500 dark:text-zinc-400">
                         10:00 PM - 6:00 AM
                       </div>
                     </div>
@@ -683,39 +685,55 @@ export default function Page() {
                 </section>
 
                 {/* Categories */}
-                <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+                <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm font-semibold text-zinc-900">
+                      <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                         Categories
                       </div>
-                      <div className="text-xs text-zinc-500">
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
                         Choose your category
                       </div>
                     </div>
-                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
+                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">
                       ⋯
                     </button>
                   </div>
 
                   <div className="mt-4 grid grid-cols-4 gap-3">
                     {[
-                      { name: "Meal", icon: "🍽️", color: "bg-orange-50" },
-                      { name: "Grocery", icon: "🛒", color: "bg-green-50" },
-                      { name: "Map", icon: "🗺️", color: "bg-blue-50" },
-                      { name: "Workout", icon: "💪", color: "bg-purple-50" },
+                      {
+                        name: "Meal",
+                        icon: "🍽️",
+                        color: "bg-orange-50 dark:bg-orange-950/30",
+                      },
+                      {
+                        name: "Grocery",
+                        icon: "🛒",
+                        color: "bg-green-50 dark:bg-green-950/30",
+                      },
+                      {
+                        name: "Map",
+                        icon: "🗺️",
+                        color: "bg-blue-50 dark:bg-blue-950/30",
+                      },
+                      {
+                        name: "Workout",
+                        icon: "💪",
+                        color: "bg-purple-50 dark:bg-purple-950/30",
+                      },
                     ].map((category) => (
                       <a
                         key={category.name}
                         href={`/${category.name.toLowerCase()}`}
-                        className="flex flex-col items-center gap-2 rounded-2xl p-3 transition-colors hover:bg-zinc-50"
+                        className="flex flex-col items-center gap-2 rounded-2xl p-3 transition-colors hover:bg-zinc-50 dark:hover:bg-zinc-800"
                       >
                         <div
                           className={`flex h-12 w-12 items-center justify-center rounded-full text-2xl ${category.color}`}
                         >
                           {category.icon}
                         </div>
-                        <div className="text-xs font-medium text-zinc-700">
+                        <div className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
                           {category.name}
                         </div>
                       </a>
@@ -724,17 +742,17 @@ export default function Page() {
                 </section>
 
                 {/* Special for you */}
-                <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+                <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm font-semibold text-zinc-900">
+                      <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                         Special for you
                       </div>
-                      <div className="text-xs text-zinc-500">
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
                         Recommended based on your interests
                       </div>
                     </div>
-                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
+                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">
                       ⋯
                     </button>
                   </div>
@@ -745,18 +763,18 @@ export default function Page() {
                         title: "Avocado Toast with Poached Egg",
                         time: "15 min",
                         calories: "320 kcal",
-                        color: "bg-orange-50",
+                        color: "bg-orange-50 dark:bg-orange-950/30",
                       },
                       {
                         title: "Grilled Chicken Salad",
                         time: "25 min",
                         calories: "450 kcal",
-                        color: "bg-green-50",
+                        color: "bg-green-50 dark:bg-green-950/30",
                       },
                     ].map((recipe, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-4 rounded-2xl bg-white p-3 shadow-sm ring-1 ring-zinc-100"
+                        className="flex items-center gap-4 rounded-2xl bg-white dark:bg-zinc-800 p-3 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-700"
                       >
                         <div
                           className={`flex h-16 w-16 items-center justify-center rounded-xl text-2xl ${recipe.color}`}
@@ -764,14 +782,14 @@ export default function Page() {
                           🥗
                         </div>
                         <div className="flex-1">
-                          <div className="font-medium text-zinc-900">
+                          <div className="font-medium text-zinc-900 dark:text-zinc-100">
                             {recipe.title}
                           </div>
-                          <div className="mt-1 text-xs text-zinc-500">
+                          <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
                             {recipe.time} • {recipe.calories}
                           </div>
                         </div>
-                        <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200">
+                        <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600">
                           ➜
                         </button>
                       </div>
@@ -785,33 +803,48 @@ export default function Page() {
           {/* RIGHT: Leaderboard & Friends */}
           <div className="space-y-6 lg:w-[280px]">
             {/* Leaderboard */}
-            <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+            <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
               <div className="mb-4 flex items-center justify-between">
-                <div className="text-sm font-semibold text-zinc-900">
+                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   Leaderboard
                 </div>
-                <button className="text-xs text-zinc-500 hover:text-zinc-700">
+                <button className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
                   See all
                 </button>
               </div>
 
               <div className="space-y-3">
                 {[
-                  { name: "Alex", score: 1250, rank: 1, color: "bg-amber-100" },
-                  { name: "Sam", score: 980, rank: 2, color: "bg-zinc-100" },
+                  {
+                    name: "Alex",
+                    score: 1250,
+                    rank: 1,
+                    color: "bg-amber-100 dark:bg-amber-900/40",
+                  },
+                  {
+                    name: "Sam",
+                    score: 980,
+                    rank: 2,
+                    color: "bg-zinc-100 dark:bg-zinc-700/40",
+                  },
                   {
                     name: "Jordan",
                     score: 870,
                     rank: 3,
-                    color: "bg-orange-100",
+                    color: "bg-orange-100 dark:bg-orange-900/40",
                   },
-                  { name: "You", score: 720, rank: 4, color: "bg-lime-100" },
+                  {
+                    name: "You",
+                    score: 720,
+                    rank: 4,
+                    color: "bg-lime-100 dark:bg-lime-900/40",
+                  },
                 ].map((user) => (
                   <div
                     key={user.rank}
-                    className="flex items-center gap-3 rounded-xl bg-zinc-50/50 p-2"
+                    className="flex items-center gap-3 rounded-xl bg-zinc-50/50 dark:bg-zinc-800/50 p-2"
                   >
-                    <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-zinc-600">
+                    <div className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold text-zinc-600 dark:text-zinc-400">
                       {user.rank}
                     </div>
                     <div
@@ -820,11 +853,11 @@ export default function Page() {
                       👤
                     </div>
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-zinc-900">
+                      <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                         {user.name}
                       </div>
                     </div>
-                    <div className="text-sm font-bold text-zinc-900">
+                    <div className="text-sm font-bold text-zinc-900 dark:text-zinc-100">
                       {user.score}
                     </div>
                   </div>
@@ -833,12 +866,12 @@ export default function Page() {
             </section>
 
             {/* Add Friends */}
-            <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+            <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
               <div className="mb-4 flex items-center justify-between">
-                <div className="text-sm font-semibold text-zinc-900">
+                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   Add friends
                 </div>
-                <button className="text-xs text-zinc-500 hover:text-zinc-700">
+                <button className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200">
                   See all
                 </button>
               </div>
@@ -851,16 +884,16 @@ export default function Page() {
                 ].map((friend, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-3 rounded-xl bg-zinc-50/50 p-2"
+                    className="flex items-center gap-3 rounded-xl bg-zinc-50/50 dark:bg-zinc-800/50 p-2"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-200 text-lg">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-700 text-lg">
                       👤
                     </div>
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-zinc-900">
+                      <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                         {friend.name}
                       </div>
-                      <div className="text-xs text-zinc-500">
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
                         {friend.mutual} mutual friends • {friend.status}
                       </div>
                     </div>
@@ -873,22 +906,34 @@ export default function Page() {
             </section>
 
             {/* Upcoming Birthdays */}
-            <section className="rounded-[28px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
+            <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
               <div className="mb-4 flex items-center justify-between">
-                <div className="text-sm font-semibold text-zinc-900">
+                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                   Upcoming Birthdays
                 </div>
               </div>
 
               <div className="space-y-3">
                 {[
-                  { name: "Riley", date: "Today", color: "bg-pink-100" },
-                  { name: "Avery", date: "Tomorrow", color: "bg-purple-100" },
-                  { name: "Quinn", date: "Dec 28", color: "bg-blue-100" },
+                  {
+                    name: "Riley",
+                    date: "Today",
+                    color: "bg-pink-100 dark:bg-pink-900/40",
+                  },
+                  {
+                    name: "Avery",
+                    date: "Tomorrow",
+                    color: "bg-purple-100 dark:bg-purple-900/40",
+                  },
+                  {
+                    name: "Quinn",
+                    date: "Dec 28",
+                    color: "bg-blue-100 dark:bg-blue-900/40",
+                  },
                 ].map((birthday, idx) => (
                   <div
                     key={idx}
-                    className="flex items-center gap-3 rounded-xl bg-zinc-50/50 p-2"
+                    className="flex items-center gap-3 rounded-xl bg-zinc-50/50 dark:bg-zinc-800/50 p-2"
                   >
                     <div
                       className={`flex h-10 w-10 items-center justify-center rounded-full ${birthday.color}`}
@@ -896,14 +941,14 @@ export default function Page() {
                       🎂
                     </div>
                     <div className="flex-1">
-                      <div className="text-sm font-medium text-zinc-900">
+                      <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
                         {birthday.name}
                       </div>
-                      <div className="text-xs text-zinc-500">
+                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
                         {birthday.date}
                       </div>
                     </div>
-                    <button className="rounded-lg border border-zinc-200 px-3 py-1 text-xs font-medium text-zinc-700 hover:bg-zinc-50">
+                    <button className="rounded-lg border border-zinc-200 dark:border-zinc-600 px-3 py-1 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700">
                       Wish
                     </button>
                   </div>

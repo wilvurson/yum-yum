@@ -11,6 +11,7 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+  url      = "postgresql://neondb_owner:npg_2IbeW8lLVoRO@ep-patient-fire-a16kscy6-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
 }
 
 model MealType {
@@ -60,12 +61,30 @@ model Schedule {
 }
 
 model User {
-  id        Int        @id @default(autoincrement())
-  name      String
-  email     String     @unique
-  isAdmin   Boolean    @default(false)
-  orders    Order[]
-  schedules Schedule[]
+  id             Int          @id @default(autoincrement())
+  name           String
+  email          String       @unique
+  isAdmin        Boolean      @default(false)
+  orders         Order[]
+  schedules      Schedule[]
+  streak         Int          @default(0)
+  points         Int          @default(0)
+  lastLoginDate  DateTime?
+  streakStartDate DateTime?
+  friendsSent    Friendship[] @relation("UserSent")
+  friendsReceived Friendship[] @relation("UserReceived")
+}
+
+model Friendship {
+  id        Int      @id @default(autoincrement())
+  senderId  Int
+  receiverId Int
+  status    String   @default("pending") // pending, accepted, rejected
+  createdAt DateTime @default(now())
+  sender    User     @relation("UserSent", fields: [senderId], references: [id])
+  receiver  User     @relation("UserReceived", fields: [receiverId], references: [id])
+
+  @@unique([senderId, receiverId])
 }
 
 enum OrderStatus {

@@ -281,7 +281,7 @@ export default function Page() {
           <div className="flex w-full max-w-xl items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-800 px-4 py-3">
             <span className="text-zinc-400 dark:text-zinc-500">🔎</span>
             <input
-              className="w-full bg-transparent text-sm outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100"
+              className="w-full bg-transparent text-sm outline-none dark:bg-zinc-800 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100"
               placeholder="Search by recipes and more"
             />
           </div>

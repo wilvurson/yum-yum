@@ -30,7 +30,11 @@ export default function Home() {
         <SignedOut>
           <h1 className="text-3xl font-semibold mb-4">Welcome to YumYum</h1>
           <p className="mb-6">Please sign in to continue.</p>
-          <SignInButton />
+          <SignInButton mode="modal">
+            <button className="bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-semibold py-3 px-8 rounded-lg transition-all duration-200 shadow-md hover:shadow-lg">
+              Sign In
+            </button>
+          </SignInButton>
         </SignedOut>
 
         <SignedIn>

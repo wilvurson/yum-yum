@@ -300,7 +300,7 @@ export default function Page() {
                     </button>
                   </div>
 
-                  <div className="mt-4 space-y-3">
+                  <div className="mt-4 space-y-3">    
                     {[
                       { name: "Breakfast Burrito", orders: 42 },
                       { name: "Grilled Chicken Salad", orders: 28 },

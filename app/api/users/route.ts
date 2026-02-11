@@ -10,12 +10,21 @@ export async function GET(request: Request) {
 
     // If email query param is provided, do a direct lookup (for client-side)
     if (email) {
-      const dbUser = await prisma.user.findUnique({
+      let dbUser = await prisma.user.findUnique({
         where: { email },
       });
 
       if (!dbUser) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
+      }
+
+      // If user doesn't have a username, set it from email
+      if (!dbUser.username) {
+        const username = email.split("@")[0];
+        dbUser = await prisma.user.update({
+          where: { email },
+          data: { username },
+        });
       }
 
       return NextResponse.json(dbUser);
@@ -34,7 +43,7 @@ export async function GET(request: Request) {
       return NextResponse.json({ error: "Email not found" }, { status: 400 });
     }
 
-    const dbUser = await prisma.user.findUnique({
+    let dbUser = await prisma.user.findUnique({
       where: { email: userEmail },
     });
 
@@ -43,6 +52,15 @@ export async function GET(request: Request) {
         { error: "User not found in DB" },
         { status: 404 },
       );
+    }
+
+    // If user doesn't have a username, set it from email
+    if (!dbUser.username) {
+      const username = userEmail.split("@")[0];
+      dbUser = await prisma.user.update({
+        where: { email: userEmail },
+        data: { username },
+      });
     }
 
     // Always return current user now
@@ -67,6 +85,8 @@ export async function POST() {
     const email = user.emailAddresses[0]?.emailAddress;
     const name =
       `${user.firstName || ""} ${user.lastName || ""}`.trim() || "User";
+    // Generate username from email (part before @)
+    const username = email.split("@")[0];
 
     if (!email) {
       return NextResponse.json({ error: "Email not found" }, { status: 400 });
@@ -76,7 +96,7 @@ export async function POST() {
     const dbUser = await prisma.user.upsert({
       where: { email },
       update: { name },
-      create: { email, name },
+      create: { email, name, username },
     });
 
     return NextResponse.json(dbUser);
@@ -84,6 +104,46 @@ export async function POST() {
     console.error("Error ensuring user:", error);
     return NextResponse.json(
       { error: "Failed to ensure user" },
+      { status: 500 },
+    );
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const user = await currentUser();
+
+    if (!user) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const email = user.emailAddresses[0]?.emailAddress;
+
+    if (!email) {
+      return NextResponse.json({ error: "Email not found" }, { status: 400 });
+    }
+
+    const body = await request.json();
+    const { name } = body;
+
+    if (!name) {
+      return NextResponse.json(
+        { error: "Display name is required" },
+        { status: 400 },
+      );
+    }
+
+    // Update user's display name
+    const dbUser = await prisma.user.update({
+      where: { email },
+      data: { name },
+    });
+
+    return NextResponse.json(dbUser);
+  } catch (error) {
+    console.error("Error updating user:", error);
+    return NextResponse.json(
+      { error: "Failed to update user" },
       { status: 500 },
     );
   }

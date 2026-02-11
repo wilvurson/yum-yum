@@ -7,27 +7,83 @@ import { useUser, SignOutButton } from "@clerk/nextjs";
 type UserData = {
   name: string;
   email: string;
+  username?: string | null;
 };
 
 export default function Page() {
   const { user, isLoaded } = useUser();
   const [userName, setUserName] = useState("User");
+  const [username, setUsername] = useState<string | null>(null);
   const [userEmail, setUserEmail] = useState("");
   const [loading, setLoading] = useState(true);
   const [showPfpDialog, setShowPfpDialog] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [editingDisplayName, setEditingDisplayName] = useState(false);
+  const [displayNameInput, setDisplayNameInput] = useState("");
+  const [updatingDisplayName, setUpdatingDisplayName] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (isLoaded && user) {
+      const email = user.primaryEmailAddress?.emailAddress || "";
+      setUserEmail(email);
       setUserName(user.fullName || user.firstName || "User");
-      setUserEmail(user.primaryEmailAddress?.emailAddress || "");
-      setLoading(false);
+      fetchUserData(email);
     } else if (isLoaded && !user) {
       setLoading(false);
     }
   }, [isLoaded, user]);
+
+  const fetchUserData = async (email: string) => {
+    try {
+      const response = await fetch(
+        `/api/users?email=${encodeURIComponent(email)}`,
+      );
+      if (response.ok) {
+        const data: UserData = await response.json();
+        setUserName(data.name);
+        setUsername(data.username || null);
+        setDisplayNameInput(data.name);
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateDisplayName = async () => {
+    if (!displayNameInput.trim()) return;
+
+    setUpdatingDisplayName(true);
+    try {
+      const response = await fetch("/api/users", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: displayNameInput.trim() }),
+      });
+
+      if (response.ok) {
+        const data: UserData = await response.json();
+        setUserName(data.name);
+        setEditingDisplayName(false);
+      } else {
+        console.error("Failed to update display name");
+      }
+    } catch (error) {
+      console.error("Error updating display name:", error);
+    } finally {
+      setUpdatingDisplayName(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setDisplayNameInput(userName);
+    setEditingDisplayName(false);
+  };
 
   const handlePfpClick = () => {
     setShowPfpDialog(true);
@@ -137,53 +193,62 @@ export default function Page() {
               <div className="mt-6 space-y-4">
                 <div>
                   <label className="block text-xs font-medium text-zinc-500 mb-1">
-                    Full Name
+                    Username
                   </label>
                   <input
                     type="text"
-                    value={userName}
+                    value={username || "Not set"}
                     readOnly
                     className="w-full rounded-lg border dark:bg-zinc-800 dark:border-zinc-500 dark:text-white border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none text-zinc-900"
                   />
                 </div>
                 <div>
                   <label className="block text-xs font-medium text-zinc-500 mb-1">
-                    Email
+                    Display name
                   </label>
-                  <input
-                    type="email"
-                    value={userEmail}
-                    readOnly
-                    className="w-full rounded-lg border dark:bg-zinc-800 dark:border-zinc-500 dark:text-white border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none text-zinc-900"
-                  />
+                  {editingDisplayName ? (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={displayNameInput}
+                        onChange={(e) => setDisplayNameInput(e.target.value)}
+                        className="flex-1 rounded-lg border dark:bg-zinc-800 dark:border-zinc-500 dark:text-white border-zinc-200 bg-white px-4 py-3 text-sm outline-none text-zinc-900 focus:border-[#FFD54A]"
+                        autoFocus
+                      />
+                      <button
+                        onClick={handleUpdateDisplayName}
+                        disabled={
+                          updatingDisplayName || !displayNameInput.trim()
+                        }
+                        className="px-4 py-3 rounded-lg bg-[#FFD54A] text-zinc-900 text-sm font-medium hover:bg-[#FFC938] disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {updatingDisplayName ? "Saving..." : "Save"}
+                      </button>
+                      <button
+                        onClick={handleCancelEdit}
+                        disabled={updatingDisplayName}
+                        className="px-4 py-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={userName}
+                        readOnly
+                        className="flex-1 rounded-lg border dark:bg-zinc-800 dark:border-zinc-500 dark:text-white border-zinc-200 bg-zinc-50 px-4 py-3 text-sm outline-none text-zinc-900"
+                      />
+                      <button
+                        onClick={() => setEditingDisplayName(true)}
+                        className="px-4 py-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-700 dark:text-zinc-300 text-sm font-medium hover:bg-zinc-50 dark:hover:bg-zinc-700"
+                      >
+                        Edit
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div>
-            </section>
-
-            {/* Account Settings */}
-            <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-zinc-900 dark:text-white">
-                  Account Settings
-                </h3>
-                <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 dark:bg-zinc-800 hover:bg-zinc-200 dark:hover:bg-zinc-700">
-                  ⚙️
-                </button>
-              </div>
-
-              <div className="mt-6 space-y-3">
-                <button className="flex w-full items-center justify-between rounded-xl bg-zinc-50 dark:bg-zinc-800 px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700">
-                  <span>Change Password</span>
-                  <span>→</span>
-                </button>
-                <button className="flex w-full items-center justify-between rounded-xl bg-zinc-50 dark:bg-zinc-800 px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700">
-                  <span>Notification Preferences</span>
-                  <span>→</span>
-                </button>
-                <button className="flex w-full items-center justify-between rounded-xl bg-zinc-50 dark:bg-zinc-800 px-4 py-3 text-sm text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-700">
-                  <span>Privacy Settings</span>
-                  <span>→</span>
-                </button>
               </div>
             </section>
 

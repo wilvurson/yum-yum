@@ -62,6 +62,7 @@ model Schedule {
 
 model User {
   id             Int          @id @default(autoincrement())
+  username       String?
   name           String
   email          String       @unique
   isAdmin        Boolean      @default(false)

@@ -27,11 +27,21 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    await prisma.order.delete({
-      where: { id: parseInt(id) },
+    const orderId = parseInt(id);
+
+    // First, delete all related order items
+    await prisma.orderItem.deleteMany({
+      where: { orderId },
     });
+
+    // Then delete the order
+    await prisma.order.delete({
+      where: { id: orderId },
+    });
+
     return NextResponse.json({ success: true });
   } catch (error) {
+    console.error("Error deleting order:", error);
     return NextResponse.json(
       { error: "Failed to delete order" },
       { status: 500 },

@@ -9,9 +9,9 @@ import {
   DrawerClose,
 } from "@/components/ui/drawer";
 import { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { ShoppingCart, X } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
-import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 interface Food {
   id: number;
@@ -57,7 +57,6 @@ export default function CartDrawer({
   setCart,
 }: CartDrawerProps) {
   const { user, isLoaded } = useUser();
-  const router = useRouter();
 
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
@@ -107,7 +106,9 @@ export default function CartDrawer({
         <div className="flex-1 overflow-y-auto p-4 space-y-4">
           {cart.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-40 text-zinc-500">
-              <span className="text-4xl mb-2">🛒</span>
+              <span className="text-4xl mb-2">
+                <ShoppingCart />
+              </span>
               <p>Your cart is empty</p>
             </div>
           ) : (
@@ -226,16 +227,16 @@ export default function CartDrawer({
                   });
 
                   if (orderRes.ok) {
-                    // Clear cart and navigate
+                    // Clear cart and close drawer
                     setCart([]);
                     setIsDrawerOpen(false);
-                    router.push("/admin/order");
+                    toast.success("Order placed successfully! 🎉");
                   } else {
-                    alert("Failed to create order");
+                    toast.error("Failed to create order");
                   }
                 } catch (error) {
                   console.error("Checkout error:", error);
-                  alert("An error occurred during checkout");
+                  toast.error("An error occurred during checkout");
                 }
               }}
             >

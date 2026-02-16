@@ -308,343 +308,343 @@ export default function Create() {
   };
 
   return (
-    <div className="min-h-screen bg-zinc-50 p-8">
-      <div className="mx-auto max-w-5xl space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-zinc-900">Create Items</h1>
-          <p className="text-sm text-zinc-500">
-            Add new foods or grocery items to your catalog.
-          </p>
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            onClick={() => {
-              setActiveTab("food");
-              resetMessage();
-            }}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-              activeTab === "food"
-                ? "bg-black text-white"
-                : "bg-white text-zinc-700 border border-zinc-200"
-            }`}
-          >
-            Food
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("grocery");
-              resetMessage();
-            }}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-              activeTab === "grocery"
-                ? "bg-black text-white"
-                : "bg-white text-zinc-700 border border-zinc-200"
-            }`}
-          >
-            Grocery
-          </button>
-          <button
-            onClick={() => {
-              setActiveTab("categories");
-              resetMessage();
-            }}
-            className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
-              activeTab === "categories"
-                ? "bg-black text-white"
-                : "bg-white text-zinc-700 border border-zinc-200"
-            }`}
-          >
-            Categories
-          </button>
-        </div>
-
-        {activeTab === "food" ? (
-          <div className="grid gap-6 rounded-[24px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="space-y-1 text-sm font-medium text-zinc-700">
-                Food name
-                <input
-                  value={foodForm.name}
-                  onChange={(event) =>
-                    handleFoodChange("name", event.target.value)
-                  }
-                  className="w-full rounded-xl border border-zinc-200 px-3 py-2"
-                  placeholder="Chicken Salad"
-                />
-              </label>
-              <label className="space-y-1 text-sm font-medium text-zinc-700">
-                Calories
-                <input
-                  value={foodForm.calories}
-                  onChange={(event) =>
-                    handleFoodChange("calories", event.target.value)
-                  }
-                  className="w-full rounded-xl border border-zinc-200 px-3 py-2"
-                  placeholder="450"
-                />
-              </label>
-              <label className="space-y-1 text-sm font-medium text-zinc-700">
-                Price
-                <input
-                  value={foodForm.price}
-                  onChange={(event) =>
-                    handleFoodChange("price", event.target.value)
-                  }
-                  className="w-full rounded-xl border border-zinc-200 px-3 py-2"
-                  placeholder="9.99"
-                />
-              </label>
-              <label className="space-y-1 text-sm font-medium text-zinc-700">
-                Image file
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFoodFileChange}
-                  className="w-full rounded-xl border border-zinc-200 px-3 py-2"
-                />
-                {foodForm.imageFileName && (
-                  <span className="text-xs text-zinc-500">
-                    Selected: {foodForm.imageFileName}
-                  </span>
-                )}
-              </label>
-              <label className="space-y-1 text-sm font-medium text-zinc-700">
-                Meal type
-                <select
-                  value={foodForm.mealType}
-                  onChange={(event) =>
-                    handleFoodChange("mealType", event.target.value)
-                  }
-                  className="w-full rounded-xl border border-zinc-200 px-3 py-2"
-                >
-                  <option value="">Select meal type</option>
-                  {mealTypes.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label className="space-y-1 text-sm font-medium text-zinc-700">
-                Cuisine (optional)
-                <select
-                  value={foodForm.cuisine}
-                  onChange={(event) =>
-                    handleFoodChange("cuisine", event.target.value)
-                  }
-                  className="w-full rounded-xl border border-zinc-200 px-3 py-2"
-                >
-                  <option value="">No cuisine</option>
-                  {cuisines.map((item) => (
-                    <option key={item} value={item}>
-                      {item}
-                    </option>
-                  ))}
-                </select>
-              </label>
-            </div>
-
-            <div className="flex items-center gap-3">
-              <button
-                onClick={submitFood}
-                disabled={!hasFoodRequired || status === "loading"}
-                className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
-              >
-                {status === "loading" ? "Saving..." : "Create Food"}
-              </button>
-              {!hasFoodRequired && (
-                <span className="text-xs text-zinc-500">
-                  Fill in name, calories, price, image, and meal type.
-                </span>
-              )}
-            </div>
+      <div className="min-h-screen bg-background p-8 text-foreground">
+        <div className="mx-auto max-w-5xl space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Create Items</h1>
+            <p className="text-sm text-muted-foreground">
+              Add new foods or grocery items to your catalog.
+            </p>
           </div>
-        ) : activeTab === "categories" ? (
-          <div className="grid gap-6 rounded-[24px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-zinc-900">
-                  Add Cuisine
-                </h3>
-                <p className="text-sm text-zinc-500">
-                  Create a new cuisine type for your foods.
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <input
-                  value={categoryForm.newCuisine}
-                  onChange={(event) =>
-                    handleCategoryChange("newCuisine", event.target.value)
-                  }
-                  className="flex-1 rounded-xl border border-zinc-200 px-3 py-2 text-black"
-                  placeholder="Italian, Japanese, Mexican, etc."
-                />
-                <button
-                  onClick={submitCuisine}
-                  disabled={!categoryForm.newCuisine.trim()}
-                  className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
-                >
-                  Add Cuisine
-                </button>
-              </div>
-            </div>
 
-            <div className="border-t border-zinc-100" />
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setActiveTab("food");
+                resetMessage();
+              }}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                activeTab === "food"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground border border-border"
+              }`}
+            >
+              Food
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("grocery");
+                resetMessage();
+              }}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                activeTab === "grocery"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground border border-border"
+              }`}
+            >
+              Grocery
+            </button>
+            <button
+              onClick={() => {
+                setActiveTab("categories");
+                resetMessage();
+              }}
+              className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+                activeTab === "categories"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-card text-foreground border border-border"
+              }`}
+            >
+              Categories
+            </button>
+          </div>
 
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-zinc-900">
-                  Add Meal Type
-                </h3>
-                <p className="text-sm text-zinc-500">
-                  Create a new meal type for your foods.
-                </p>
-              </div>
-              <div className="flex gap-3">
-                <input
-                  value={categoryForm.newMealType}
-                  onChange={(event) =>
-                    handleCategoryChange("newMealType", event.target.value)
-                  }
-                  className="flex-1 rounded-xl border border-zinc-200 px-3 py-2 text-black"
-                  placeholder="Breakfast, Lunch, Dinner, Snack, etc."
-                />
-                <button
-                  onClick={submitMealType}
-                  disabled={!categoryForm.newMealType.trim()}
-                  className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
-                >
-                  Add Meal Type
-                </button>
-              </div>
-            </div>
-
-            <div className="border-t border-zinc-100" />
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div>
-                <h4 className="mb-2 text-sm font-medium text-zinc-700">
-                  Available Cuisines
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {cuisines.map((item) => (
-                    <span
-                      key={item}
-                      className="rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-700"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                  {cuisines.length === 0 && (
-                    <span className="text-sm text-zinc-400">
-                      No cuisines added yet
+          {activeTab === "food" ? (
+            <div className="grid gap-6 rounded-[24px] bg-card p-6 shadow-sm">
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="space-y-1 text-sm font-medium text-card-foreground">
+                  Food name
+                  <input
+                    value={foodForm.name}
+                    onChange={(event) =>
+                      handleFoodChange("name", event.target.value)
+                    }
+                    className="w-full rounded-xl border border-border bg-background text-foreground px-3 py-2"
+                    placeholder="Chicken Salad"
+                  />
+                </label>
+                <label className="space-y-1 text-sm font-medium text-card-foreground">
+                  Calories
+                  <input
+                    value={foodForm.calories}
+                    onChange={(event) =>
+                      handleFoodChange("calories", event.target.value)
+                    }
+                    className="w-full rounded-xl border border-border bg-background text-foreground px-3 py-2"
+                    placeholder="450"
+                  />
+                </label>
+                <label className="space-y-1 text-sm font-medium text-card-foreground">
+                  Price
+                  <input
+                    value={foodForm.price}
+                    onChange={(event) =>
+                      handleFoodChange("price", event.target.value)
+                    }
+                    className="w-full rounded-xl border border-border bg-background text-foreground px-3 py-2"
+                    placeholder="9.99"
+                  />
+                </label>
+                <label className="space-y-1 text-sm font-medium text-card-foreground">
+                  Image file
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleFoodFileChange}
+                    className="w-full rounded-xl border border-border bg-background text-foreground px-3 py-2"
+                  />
+                  {foodForm.imageFileName && (
+                    <span className="text-xs text-muted-foreground">
+                      Selected: {foodForm.imageFileName}
                     </span>
                   )}
-                </div>
+                </label>
+                <label className="space-y-1 text-sm font-medium text-card-foreground">
+                  Meal type
+                  <select
+                    value={foodForm.mealType}
+                    onChange={(event) =>
+                      handleFoodChange("mealType", event.target.value)
+                    }
+                    className="w-full rounded-xl border border-border bg-background text-foreground px-3 py-2"
+                  >
+                    <option value="">Select meal type</option>
+                    {mealTypes.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="space-y-1 text-sm font-medium text-card-foreground">
+                  Cuisine (optional)
+                  <select
+                    value={foodForm.cuisine}
+                    onChange={(event) =>
+                      handleFoodChange("cuisine", event.target.value)
+                    }
+                    className="w-full rounded-xl border border-border bg-background text-foreground px-3 py-2"
+                  >
+                    <option value="">No cuisine</option>
+                    {cuisines.map((item) => (
+                      <option key={item} value={item}>
+                        {item}
+                      </option>
+                    ))}
+                  </select>
+                </label>
               </div>
-              <div>
-                <h4 className="mb-2 text-sm font-medium text-zinc-700">
-                  Available Meal Types
-                </h4>
-                <div className="flex flex-wrap gap-2">
-                  {mealTypes.map((item) => (
-                    <span
-                      key={item}
-                      className="rounded-full bg-zinc-100 px-3 py-1 text-sm text-zinc-700"
-                    >
-                      {item}
-                    </span>
-                  ))}
-                  {mealTypes.length === 0 && (
-                    <span className="text-sm text-zinc-400">
-                      No meal types added yet
-                    </span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className="grid gap-6 rounded-[24px] bg-white p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)]">
-            <div className="grid gap-4 md:grid-cols-2">
-              <label className="space-y-1 text-sm font-medium text-zinc-700">
-                Grocery name
-                <input
-                  value={groceryForm.name}
-                  onChange={(event) =>
-                    handleGroceryChange("name", event.target.value)
-                  }
-                  className="w-full rounded-xl border border-zinc-200 px-3 py-2"
-                  placeholder="Bananas"
-                />
-              </label>
-              <label className="space-y-1 text-sm font-medium text-zinc-700">
-                Unit
-                <input
-                  value={groceryForm.unit}
-                  onChange={(event) =>
-                    handleGroceryChange("unit", event.target.value)
-                  }
-                  className="w-full rounded-xl border border-zinc-200 px-3 py-2"
-                  placeholder="kg"
-                />
-              </label>
-              <label className="space-y-1 text-sm font-medium text-zinc-700">
-                Calories per unit
-                <input
-                  value={groceryForm.calPerUnit}
-                  onChange={(event) =>
-                    handleGroceryChange("calPerUnit", event.target.value)
-                  }
-                  className="w-full rounded-xl border border-zinc-200 px-3 py-2"
-                  placeholder="89"
-                />
-              </label>
-              <label className="space-y-1 text-sm font-medium text-zinc-700">
-                Price
-                <input
-                  value={groceryForm.price}
-                  onChange={(event) =>
-                    handleGroceryChange("price", event.target.value)
-                  }
-                  className="w-full rounded-xl border border-zinc-200 px-3 py-2"
-                  placeholder="2.99"
-                />
-              </label>
-              <label className="space-y-1 text-sm font-medium text-zinc-700">
-                Image file (optional)
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleGroceryFileChange}
-                  className="w-full rounded-xl border border-zinc-200 px-3 py-2"
-                />
-                {groceryForm.imageFileName && (
-                  <span className="text-xs text-zinc-500">
-                    Selected: {groceryForm.imageFileName}
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={submitFood}
+                  disabled={!hasFoodRequired || status === "loading"}
+                  className="rounded-full bg-primary text-primary-foreground px-5 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {status === "loading" ? "Saving..." : "Create Food"}
+                </button>
+                {!hasFoodRequired && (
+                  <span className="text-xs text-muted-foreground">
+                    Fill in name, calories, price, image, and meal type.
                   </span>
                 )}
-              </label>
+              </div>
             </div>
+          ) : activeTab === "categories" ? (
+            <div className="grid gap-6 rounded-[24px] bg-card p-6 shadow-sm">
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-card-foreground">
+                    Add Cuisine
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Create a new cuisine type for your foods.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <input
+                    value={categoryForm.newCuisine}
+                    onChange={(event) =>
+                      handleCategoryChange("newCuisine", event.target.value)
+                    }
+                    className="flex-1 rounded-xl border border-border bg-background text-foreground px-3 py-2"
+                    placeholder="Italian, Japanese, Mexican, etc."
+                  />
+                  <button
+                    onClick={submitCuisine}
+                    disabled={!categoryForm.newCuisine.trim()}
+                    className="rounded-full bg-primary text-primary-foreground px-5 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Add Cuisine
+                  </button>
+                </div>
+              </div>
 
-            <div className="flex items-center gap-3">
-              <button
-                onClick={submitGrocery}
-                disabled={!hasGroceryRequired || status === "loading"}
-                className="rounded-full bg-black px-5 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-zinc-300"
-              >
-                {status === "loading" ? "Saving..." : "Create Grocery Item"}
-              </button>
-              {!hasGroceryRequired && (
-                <span className="text-xs text-zinc-500">
-                  Fill in name, unit, calories per unit, and price.
-                </span>
-              )}
+              <div className="border-t border-border" />
+
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-card-foreground">
+                    Add Meal Type
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    Create a new meal type for your foods.
+                  </p>
+                </div>
+                <div className="flex gap-3">
+                  <input
+                    value={categoryForm.newMealType}
+                    onChange={(event) =>
+                      handleCategoryChange("newMealType", event.target.value)
+                    }
+                    className="flex-1 rounded-xl border border-border bg-background text-foreground px-3 py-2"
+                    placeholder="Breakfast, Lunch, Dinner, Snack, etc."
+                  />
+                  <button
+                    onClick={submitMealType}
+                    disabled={!categoryForm.newMealType.trim()}
+                    className="rounded-full bg-primary text-primary-foreground px-5 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Add Meal Type
+                  </button>
+                </div>
+              </div>
+
+              <div className="border-t border-border" />
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <h4 className="mb-2 text-sm font-medium text-card-foreground">
+                    Available Cuisines
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {cuisines.map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-full bg-muted text-muted-foreground px-3 py-1 text-sm"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                    {cuisines.length === 0 && (
+                      <span className="text-sm text-muted-foreground">
+                        No cuisines added yet
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div>
+                  <h4 className="mb-2 text-sm font-medium text-card-foreground">
+                    Available Meal Types
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {mealTypes.map((item) => (
+                      <span
+                        key={item}
+                        className="rounded-full bg-muted text-muted-foreground px-3 py-1 text-sm"
+                      >
+                        {item}
+                      </span>
+                    ))}
+                    {mealTypes.length === 0 && (
+                      <span className="text-sm text-muted-foreground">
+                        No meal types added yet
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="grid gap-6 rounded-[24px] bg-card p-6 shadow-sm">
+              <div className="grid gap-4 md:grid-cols-2">
+                <label className="space-y-1 text-sm font-medium text-card-foreground">
+                  Grocery name
+                  <input
+                    value={groceryForm.name}
+                    onChange={(event) =>
+                      handleGroceryChange("name", event.target.value)
+                    }
+                    className="w-full rounded-xl border border-border bg-background text-foreground px-3 py-2"
+                    placeholder="Bananas"
+                  />
+                </label>
+                <label className="space-y-1 text-sm font-medium text-card-foreground">
+                  Unit
+                  <input
+                    value={groceryForm.unit}
+                    onChange={(event) =>
+                      handleGroceryChange("unit", event.target.value)
+                    }
+                    className="w-full rounded-xl border border-border bg-background text-foreground px-3 py-2"
+                    placeholder="kg"
+                  />
+                </label>
+                <label className="space-y-1 text-sm font-medium text-card-foreground">
+                  Calories per unit
+                  <input
+                    value={groceryForm.calPerUnit}
+                    onChange={(event) =>
+                      handleGroceryChange("calPerUnit", event.target.value)
+                    }
+                    className="w-full rounded-xl border border-border bg-background text-foreground px-3 py-2"
+                    placeholder="89"
+                  />
+                </label>
+                <label className="space-y-1 text-sm font-medium text-card-foreground">
+                  Price
+                  <input
+                    value={groceryForm.price}
+                    onChange={(event) =>
+                      handleGroceryChange("price", event.target.value)
+                    }
+                    className="w-full rounded-xl border border-border bg-background text-foreground px-3 py-2"
+                    placeholder="2.99"
+                  />
+                </label>
+                <label className="space-y-1 text-sm font-medium text-card-foreground">
+                  Image file (optional)
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleGroceryFileChange}
+                    className="w-full rounded-xl border border-border bg-background text-foreground px-3 py-2"
+                  />
+                  {groceryForm.imageFileName && (
+                    <span className="text-xs text-muted-foreground">
+                      Selected: {groceryForm.imageFileName}
+                    </span>
+                  )}
+                </label>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={submitGrocery}
+                  disabled={!hasGroceryRequired || status === "loading"}
+                  className="rounded-full bg-primary text-primary-foreground px-5 py-2 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {status === "loading" ? "Saving..." : "Create Grocery Item"}
+                </button>
+                {!hasGroceryRequired && (
+                  <span className="text-xs text-muted-foreground">
+                    Fill in name, unit, calories per unit, and price.
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useMemo, useState, useEffect } from "react";
 import Navbar from "../navbar/navber";
+import { Apple, Dumbbell, Map, Utensils } from "lucide-react";
 
 type ScheduleItem = {
   id: number;
@@ -276,14 +277,6 @@ export default function Page() {
                 </div>
               </div>
             </div>
-          </div>
-
-          <div className="flex w-full max-w-xl items-center gap-2 rounded-full bg-zinc-100 dark:bg-zinc-800 px-4 py-3">
-            <span className="text-zinc-400 dark:text-zinc-500">🔎</span>
-            <input
-              className="w-full bg-transparent text-sm outline-none dark:bg-zinc-800 placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100"
-              placeholder="Search by recipes and more"
-            />
           </div>
         </div>
       </div>
@@ -761,22 +754,22 @@ export default function Page() {
                     {[
                       {
                         name: "Meal",
-                        icon: "🍽️",
+                        icon: <Utensils />,
                         color: "bg-orange-50 dark:bg-orange-950/30",
                       },
                       {
                         name: "Grocery",
-                        icon: "🛒",
+                        icon: <Apple />,
                         color: "bg-green-50 dark:bg-green-950/30",
                       },
                       {
                         name: "Map",
-                        icon: "🗺️",
+                        icon: <Map />,
                         color: "bg-blue-50 dark:bg-blue-950/30",
                       },
                       {
                         name: "Workout",
-                        icon: "💪",
+                        icon: <Dumbbell />,
                         color: "bg-purple-50 dark:bg-purple-950/30",
                       },
                     ].map((category) => (
@@ -927,100 +920,6 @@ export default function Page() {
                     </div>
                   ))
                 )}
-              </div>
-            </section>
-
-            {/* Add Friends */}
-            <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
-              <div className="mb-4 flex items-center justify-between">
-                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                  Add friends
-                </div>
-                <a
-                  href="/friends"
-                  className="text-xs text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200"
-                >
-                  See all
-                </a>
-              </div>
-
-              <div className="space-y-3">
-                {[
-                  { name: "Taylor", mutual: 4, status: "Follows you" },
-                  { name: "Morgan", mutual: 2, status: "Follows you" },
-                  { name: "Casey", mutual: 1, status: "New to app" },
-                ].map((friend, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-3 rounded-xl bg-zinc-50/50 dark:bg-zinc-800/50 p-2"
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-200 dark:bg-zinc-700 text-lg">
-                      👤
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                        {friend.name}
-                      </div>
-                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {friend.mutual} mutual friends • {friend.status}
-                      </div>
-                    </div>
-                    <button className="rounded-lg bg-[#7B61FF] px-3 py-1 text-xs font-medium text-white hover:opacity-95">
-                      Add
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </section>
-
-            {/* Upcoming Birthdays */}
-            <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
-              <div className="mb-4 flex items-center justify-between">
-                <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                  Upcoming Birthdays
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {[
-                  {
-                    name: "Riley",
-                    date: "Today",
-                    color: "bg-pink-100 dark:bg-pink-900/40",
-                  },
-                  {
-                    name: "Avery",
-                    date: "Tomorrow",
-                    color: "bg-purple-100 dark:bg-purple-900/40",
-                  },
-                  {
-                    name: "Quinn",
-                    date: "Dec 28",
-                    color: "bg-blue-100 dark:bg-blue-900/40",
-                  },
-                ].map((birthday, idx) => (
-                  <div
-                    key={idx}
-                    className="flex items-center gap-3 rounded-xl bg-zinc-50/50 dark:bg-zinc-800/50 p-2"
-                  >
-                    <div
-                      className={`flex h-10 w-10 items-center justify-center rounded-full ${birthday.color}`}
-                    >
-                      🎂
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                        {birthday.name}
-                      </div>
-                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
-                        {birthday.date}
-                      </div>
-                    </div>
-                    <button className="rounded-lg border border-zinc-200 dark:border-zinc-600 px-3 py-1 text-xs font-medium text-zinc-700 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-700">
-                      Wish
-                    </button>
-                  </div>
-                ))}
               </div>
             </section>
           </div>

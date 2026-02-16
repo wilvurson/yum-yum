@@ -3,7 +3,16 @@
 import { useState, useEffect } from "react";
 import Navbar from "../navbar/navber";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
+import {
+  X,
+  ChevronDown,
+  Truck,
+  MapPinPlus,
+  Store,
+  Earth,
+  Utensils,
+  ShoppingCart,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useUser } from "@clerk/nextjs";
 import {
@@ -15,6 +24,7 @@ import {
   DrawerFooter,
   DrawerClose,
 } from "@/components/ui/drawer";
+import { toast } from "sonner";
 
 interface Food {
   id: number;
@@ -26,7 +36,20 @@ interface Food {
   };
 }
 
+interface GroceryItem {
+  id: number;
+  name: string;
+  unit: string;
+  calPerUnit: string;
+  image: string | null;
+  price: number;
+}
+
 interface CartItem extends Food {
+  quantity: number;
+}
+
+interface CartGroceryItem extends GroceryItem {
   quantity: number;
 }
 
@@ -35,11 +58,18 @@ export default function Page() {
   const { user, isLoaded } = useUser();
   const [mealTypes, setMealTypes] = useState<string[]>([]);
   const [cuisines, setCuisines] = useState<string[]>([]);
-  const [mode, setMode] = useState<"meal" | "cuisine">("meal");
+  const [groceryItems, setGroceryItems] = useState<GroceryItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<string | null>(null);
   const [foods, setFoods] = useState<Food[]>([]);
+  const [displayGrocery, setDisplayGrocery] = useState<GroceryItem[]>([]);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const [selectedDelivery, setSelectedDelivery] = useState<string>("home");
+
+  // Accordion state for the left sidebar
+  const [expandedSection, setExpandedSection] = useState<
+    "meals" | "cuisine" | "grocery" | null
+  >(null);
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -60,7 +90,7 @@ export default function Page() {
         const response = await fetch("/api/mealtypes");
         if (response.ok) {
           const data = await response.json();
-          setMealTypes([...data, "Cuisine"]);
+          setMealTypes([...data, "Cuisine", "Grocery"]);
         } else {
           console.error("Failed to fetch meal types");
         }
@@ -73,53 +103,22 @@ export default function Page() {
   }, []);
 
   const handleItemClick = async (item: string) => {
-    if (mode === "meal") {
-      if (item === "Cuisine") {
-        setMode("cuisine");
-        try {
-          const response = await fetch("/api/cuisines");
-          if (response.ok) {
-            const data = await response.json();
-            setCuisines(data);
-          } else {
-            console.error("Failed to fetch cuisines");
-          }
-        } catch (error) {
-          console.error("Error fetching cuisines:", error);
-        }
-        setSelectedItem(null);
-        setFoods([]);
+    // Set the selected item (for meal types or cuisines)
+    setSelectedItem(item);
+
+    // Fetch foods for the selected meal type or cuisine
+    try {
+      const response = await fetch(`/api/foods?mealType=${item}`);
+      if (response.ok) {
+        const data = await response.json();
+        setFoods(data);
       } else {
-        setSelectedItem(item);
-        try {
-          const response = await fetch(`/api/foods?mealType=${item}`);
-          if (response.ok) {
-            const data = await response.json();
-            setFoods(data);
-          } else {
-            console.error("Failed to fetch foods");
-            setFoods([]);
-          }
-        } catch (error) {
-          console.error("Error fetching foods:", error);
-          setFoods([]);
-        }
-      }
-    } else if (mode === "cuisine") {
-      setSelectedItem(item);
-      try {
-        const response = await fetch(`/api/foods?cuisine=${item}`);
-        if (response.ok) {
-          const data = await response.json();
-          setFoods(data);
-        } else {
-          console.error("Failed to fetch foods");
-          setFoods([]);
-        }
-      } catch (error) {
-        console.error("Error fetching foods:", error);
+        console.error("Failed to fetch foods");
         setFoods([]);
       }
+    } catch (error) {
+      console.error("Error fetching foods:", error);
+      setFoods([]);
     }
   };
 
@@ -181,7 +180,7 @@ export default function Page() {
               className="w-full bg-transparent text-sm outline-none placeholder:text-zinc-400 dark:placeholder:text-zinc-500 text-zinc-900 dark:text-zinc-100"
               placeholder="Search for foods and recipes"
             />
-            <button className="grid h-8 w-8 place-items-center rounded-full bg-white dark:bg-zinc-700 shadow-sm">
+            <button className="grid h-8 w-8 place-items-center rounded-full bg-white dark:bg-zinc-700 shadow-sm cursor-pointer">
               🍽️
             </button>
           </div>
@@ -191,54 +190,280 @@ export default function Page() {
       {/* Main grid */}
       <div className="px-7 pb-8 pt-6">
         <div className="flex flex-col gap-6 lg:flex-row">
-          {/* LEFT: Meal Selection */}
+          {/* LEFT: Meal Selection - Accordion */}
           <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)] lg:w-[360px]">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
-                {mode === "meal" ? "Meal Types" : "Cuisines"}
-              </h3>
-              {mode === "cuisine" && (
-                <button
-                  onClick={() => {
-                    setMode("meal");
-                    setSelectedItem(null);
-                    setFoods([]);
-                  }}
-                  className="grid h-8 w-8 place-items-center rounded-full cursor-pointer bg-black dark:bg-zinc-700 text-white"
-                >
-                  ←
-                </button>
-              )}
-            </div>
+            <h2 className="text-sm font-bold text-zinc-900 dark:text-zinc-100 mb-4">
+              Filter by
+            </h2>
 
-            <div className="mt-4 space-y-2">
-              {(mode === "meal" ? mealTypes : cuisines).map((item) => (
+            <div className="space-y-2">
+              {/* Meal Types Section */}
+              <div>
                 <button
-                  key={item}
-                  onClick={() => handleItemClick(item)}
-                  className={`block w-full text-left p-3 rounded-2xl transition-colors ${
-                    selectedItem === item
-                      ? "bg-[#7B61FF] text-white"
-                      : "bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
+                  onClick={() =>
+                    setExpandedSection(
+                      expandedSection === "meals" ? null : "meals",
+                    )
+                  }
+                  className={`w-full flex items-center justify-between px-4 py-3 transition-all rounded-lg cursor-pointer ${
+                    expandedSection === "meals"
+                      ? "bg-yellow-300 hover:bg-yellow-400 dark:bg-yellow-500 dark:hover:bg-yellow-600 rounded-full text-zinc-900 font-semibold"
+                      : "bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
                   }`}
                 >
-                  {item}
+                  <span className="font-medium flex items-center">
+                    <Utensils className="w-5 h-5 mr-2" /> Meal Types
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      expandedSection === "meals"
+                        ? "rotate-180 text-zinc-900"
+                        : "text-zinc-600 dark:text-zinc-400"
+                    }`}
+                  />
                 </button>
-              ))}
+                {expandedSection === "meals" && (
+                  <div className="p-3 space-y-2 bg-transparent border-t-0">
+                    {mealTypes
+                      .filter(
+                        (item) => item !== "Cuisine" && item !== "Grocery",
+                      )
+                      .map((item) => (
+                        <button
+                          key={item}
+                          onClick={() => handleItemClick(item)}
+                          className={`block w-full text-left p-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                            selectedItem === item
+                              ? "bg-[#7B61FF] text-white"
+                              : "bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
+                          }`}
+                        >
+                          {item}
+                        </button>
+                      ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Cuisine Section */}
+              <div>
+                <button
+                  onClick={async () => {
+                    if (expandedSection !== "cuisine") {
+                      // Fetch cuisines when expanding
+                      try {
+                        const response = await fetch("/api/cuisines");
+                        if (response.ok) {
+                          const data = await response.json();
+                          setCuisines(data);
+                        }
+                      } catch (error) {
+                        console.error("Error fetching cuisines:", error);
+                      }
+                    }
+                    setExpandedSection(
+                      expandedSection === "cuisine" ? null : "cuisine",
+                    );
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-3 transition-all rounded-lg cursor-pointer ${
+                    expandedSection === "cuisine"
+                      ? "bg-yellow-300 hover:bg-yellow-400 dark:bg-yellow-500 dark:hover:bg-yellow-600 rounded-full text-zinc-900 font-semibold"
+                      : "bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
+                  }`}
+                >
+                  <span className="font-medium flex items-center">
+                    <Earth className="w-5 h-5 mr-2" /> Cuisines
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      expandedSection === "cuisine"
+                        ? "rotate-180 text-zinc-900"
+                        : "text-zinc-600 dark:text-zinc-400"
+                    }`}
+                  />
+                </button>
+                {expandedSection === "cuisine" && (
+                  <div className="p-3 space-y-2 bg-transparent border-t-0">
+                    {cuisines.map((item) => (
+                      <button
+                        key={item}
+                        onClick={() => handleItemClick(item)}
+                        className={`block w-full text-left p-2 rounded-lg text-sm transition-colors cursor-pointer ${
+                          selectedItem === item
+                            ? "bg-[#7B61FF] text-white"
+                            : "bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Grocery Section */}
+              <div>
+                <button
+                  onClick={async () => {
+                    if (expandedSection !== "grocery") {
+                      // Fetch grocery items when expanding
+                      try {
+                        const response = await fetch("/api/grocery");
+                        if (response.ok) {
+                          const data = await response.json();
+                          setDisplayGrocery(data);
+                        }
+                      } catch (error) {
+                        console.error("Error fetching grocery items:", error);
+                      }
+                    }
+                    setExpandedSection(
+                      expandedSection === "grocery" ? null : "grocery",
+                    );
+                  }}
+                  className={`w-full flex items-center justify-between px-4 py-3 transition-all rounded-lg cursor-pointer ${
+                    expandedSection === "grocery"
+                      ? "bg-yellow-300 hover:bg-yellow-400 dark:bg-yellow-500 dark:hover:bg-yellow-600 rounded-full text-zinc-900 font-semibold"
+                      : "bg-zinc-50 dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100"
+                  }`}
+                >
+                  <span className="font-medium flex items-center">
+                    <ShoppingCart className="w-5 h-5 mr-2" /> Grocery Items
+                  </span>
+                  <ChevronDown
+                    className={`h-4 w-4 transition-transform ${
+                      expandedSection === "grocery"
+                        ? "rotate-180 text-zinc-900"
+                        : "text-zinc-600 dark:text-zinc-400"
+                    }`}
+                  />
+                </button>
+                {expandedSection === "grocery" && (
+                  <div className="p-3 space-y-2 bg-transparent border-t-0 max-h-48 overflow-y-auto">
+                    {displayGrocery.map((item) => (
+                      <button
+                        key={item.id}
+                        onClick={() => {
+                          setCart((prev) => {
+                            const existing = prev.find(
+                              (cartItem) =>
+                                (cartItem as any).groceryItemId === item.id,
+                            );
+                            if (existing) {
+                              return prev.map((cartItem) =>
+                                (cartItem as any).groceryItemId === item.id
+                                  ? {
+                                      ...cartItem,
+                                      quantity: cartItem.quantity + 1,
+                                    }
+                                  : cartItem,
+                              );
+                            }
+                            return [
+                              ...prev,
+                              {
+                                ...item,
+                                groceryItemId: item.id,
+                                quantity: 1,
+                              } as any,
+                            ];
+                          });
+                          toast.success(`${item.name} added to cart!`);
+                        }}
+                        className="block w-full text-left p-2 rounded-lg text-sm bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 transition-colors cursor-pointer"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span>{item.name}</span>
+                          <span className="text-xs text-zinc-600 dark:text-zinc-400">
+                            ${Number(item.price).toFixed(2)}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           </section>
 
           {/* CENTER + RIGHT */}
           <div className="flex-1">
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-[1fr_300px]">
-              {/* CENTER: Foods Grid */}
+              {/* CENTER: Foods/Grocery Grid */}
               <div className="space-y-6">
-                {selectedItem && (
+                {expandedSection === "grocery" && (
+                  <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                    Grocery Items
+                  </h2>
+                )}
+                {selectedItem && expandedSection !== "grocery" && (
                   <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
                     Foods for {selectedItem}
                   </h2>
                 )}
-                {foods.length > 0 ? (
+                {expandedSection === "grocery" && displayGrocery.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {displayGrocery.map((item) => (
+                      <div
+                        key={item.id}
+                        className="bg-white dark:bg-zinc-800 p-4 rounded-[20px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_12px_30px_rgba(0,0,0,0.4)] transition-shadow flex flex-col border border-zinc-100 dark:border-zinc-700"
+                      >
+                        <img
+                          src={item.image || "https://via.placeholder.com/150"}
+                          alt={item.name}
+                          className="w-full h-32 object-cover rounded-lg mb-3"
+                        />
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                            {item.name}
+                          </h3>
+                          <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                            ${Number(item.price).toFixed(2)}
+                          </p>
+                        </div>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                          {item.unit}
+                        </p>
+                        <Button
+                          className="w-full mt-3"
+                          size="sm"
+                          onClick={() => {
+                            setCart((prev) => {
+                              const existing = prev.find(
+                                (cartItem) =>
+                                  (cartItem as any).groceryItemId === item.id,
+                              );
+                              if (existing) {
+                                return prev.map((cartItem) =>
+                                  (cartItem as any).groceryItemId === item.id
+                                    ? {
+                                        ...cartItem,
+                                        quantity: cartItem.quantity + 1,
+                                      }
+                                    : cartItem,
+                                );
+                              }
+                              return [
+                                ...prev,
+                                {
+                                  ...item,
+                                  groceryItemId: item.id,
+                                  quantity: 1,
+                                } as any,
+                              ];
+                            });
+                          }}
+                        >
+                          Buy
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : expandedSection === "grocery" ? (
+                  <p className="text-zinc-500 dark:text-zinc-400">
+                    No grocery items available.
+                  </p>
+                ) : foods.length > 0 ? (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {foods.map((food) => (
                       <div
@@ -284,6 +509,69 @@ export default function Page() {
 
               {/* RIGHT: Meal Stats or Recommendations */}
               <div className="space-y-6">
+                {/* Delivery Options Card */}
+                <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
+                  <div className="mb-4">
+                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 mb-4">
+                      📍 Delivery Options
+                    </h3>
+                    <div className="space-y-3">
+                      {[
+                        {
+                          id: "home",
+                          label: "Delivery",
+                          desc: "To your address",
+                        },
+                        {
+                          id: "pickup",
+                          label: "Pickup",
+                          desc: "From restaurant",
+                        },
+                      ].map((option) => (
+                        <label
+                          key={option.id}
+                          className={`flex items-center gap-3 p-3 rounded-lg cursor-pointer border transition-all ${
+                            selectedDelivery === option.id
+                              ? "bg-[#7B61FF]/10 border-[#7B61FF] dark:bg-[#7B61FF]/20"
+                              : "border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-800"
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="delivery"
+                            value={option.id}
+                            checked={selectedDelivery === option.id}
+                            onChange={(e) =>
+                              setSelectedDelivery(e.target.value)
+                            }
+                            className="w-4 h-4 cursor-pointer"
+                          />
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                              {option.label}
+                            </div>
+                            <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                              {option.desc}
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Conditional Action Buttons */}
+                  {selectedDelivery === "home" && (
+                    <Button className="w-full bg-[#7B61FF] hover:bg-[#6a52e0] text-white">
+                      <MapPinPlus className="mr-2 h-4 w-4" /> Add Location
+                    </Button>
+                  )}
+                  {selectedDelivery === "pickup" && (
+                    <Button className="w-full bg-[#7B61FF] hover:bg-[#6a52e0] text-white">
+                      <Store className="mr-2 h-4 w-4" /> Pick Branch
+                    </Button>
+                  )}
+                </section>
+
                 {/* Popular Meals */}
                 <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
                   <div className="flex items-center justify-between">
@@ -295,12 +583,12 @@ export default function Page() {
                         This week
                       </div>
                     </div>
-                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">
+                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 cursor-pointer">
                       ⋯
                     </button>
                   </div>
 
-                  <div className="mt-4 space-y-3">    
+                  <div className="mt-4 space-y-3">
                     {[
                       { name: "Breakfast Burrito", orders: 42 },
                       { name: "Grilled Chicken Salad", orders: 28 },
@@ -329,7 +617,7 @@ export default function Page() {
                     <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                       Nutrition Tips
                     </div>
-                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">
+                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 cursor-pointer">
                       💡
                     </button>
                   </div>
@@ -352,7 +640,9 @@ export default function Page() {
         onClick={() => setIsDrawerOpen(true)}
       >
         <div className="relative">
-          <span className="text-lg">🛒</span>
+          <span className="text-lg">
+            <ShoppingCart />
+          </span>
           {cartCount > 0 && (
             <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
               {cartCount}
@@ -381,7 +671,9 @@ export default function Page() {
           <div className="flex-1 overflow-y-auto p-4 space-y-4">
             {cart.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-40 text-zinc-500 dark:text-zinc-400">
-                <span className="text-4xl mb-2">🛒</span>
+                <span className="text-4xl mb-2">
+                  <ShoppingCart />
+                </span>
                 <p>Your cart is empty</p>
               </div>
             ) : (
@@ -447,77 +739,80 @@ export default function Page() {
           </div>
 
           {cart.length > 0 && (
-            <DrawerFooter className="border-t border-zinc-200 dark:border-zinc-700 pt-4">
-              <div className="flex items-center justify-between mb-4 px-2">
-                <span className="font-semibold text-lg text-zinc-900 dark:text-zinc-100">
-                  Total
-                </span>
-                <span className="font-bold text-xl text-[#7B61FF]">
-                  ${cartTotal.toFixed(2)}
-                </span>
+            <DrawerFooter className="border-t border-zinc-200 dark:border-zinc-700 pt-4 space-y-4">
+              {/* Total and Checkout */}
+              <div>
+                <div className="flex items-center justify-between mb-4 px-2">
+                  <span className="font-semibold text-lg text-zinc-900 dark:text-zinc-100">
+                    Total
+                  </span>
+                  <span className="font-bold text-xl text-[#7B61FF]">
+                    ${cartTotal.toFixed(2)}
+                  </span>
+                </div>
+                <Button
+                  className="w-full bg-[#7B61FF] hover:bg-[#6a52e0]"
+                  size="lg"
+                  onClick={async () => {
+                    if (!isLoaded || !user) {
+                      alert("Please sign in to checkout");
+                      return;
+                    }
+
+                    try {
+                      // Get the user ID from Clerk and map to database user
+                      const email = user.primaryEmailAddress?.emailAddress;
+                      if (!email) {
+                        alert("Could not get user email");
+                        return;
+                      }
+
+                      // Fetch user from our database
+                      const userRes = await fetch(
+                        `/api/users?email=${encodeURIComponent(email)}`,
+                      );
+                      if (!userRes.ok) {
+                        alert("User not found");
+                        return;
+                      }
+                      const dbUser = await userRes.json();
+
+                      // Create order with cart items
+                      const items = cart.map((item) => ({
+                        id: item.id,
+                        name: item.name,
+                        price: item.price,
+                        quantity: item.quantity,
+                        image: item.image,
+                      }));
+
+                      const orderRes = await fetch("/api/orders", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                          userId: dbUser.id,
+                          items: JSON.stringify(items),
+                          status: "pending",
+                        }),
+                      });
+
+                      if (orderRes.ok) {
+                        // Clear cart and navigate
+                        setCart([]);
+                        setIsDrawerOpen(false);
+                        toast.success("Order placed successfully! 🎉");
+                      } else {
+                        toast.error("Failed to create order");
+                      }
+                    } catch (error) {
+                      console.error("Checkout error:", error);
+                      toast.error("An error occurred during checkout");
+                    }
+                  }}
+                >
+                  Checkout
+                </Button>
               </div>
-              <Button
-                className="w-full bg-[#7B61FF] hover:bg-[#6a52e0]"
-                size="lg"
-                onClick={async () => {
-                  if (!isLoaded || !user) {
-                    alert("Please sign in to checkout");
-                    return;
-                  }
-
-                  try {
-                    // Get the user ID from Clerk and map to database user
-                    const email = user.primaryEmailAddress?.emailAddress;
-                    if (!email) {
-                      alert("Could not get user email");
-                      return;
-                    }
-
-                    // Fetch user from our database
-                    const userRes = await fetch(
-                      `/api/users?email=${encodeURIComponent(email)}`,
-                    );
-                    if (!userRes.ok) {
-                      alert("User not found");
-                      return;
-                    }
-                    const dbUser = await userRes.json();
-
-                    // Create order with cart items
-                    const items = cart.map((item) => ({
-                      id: item.id,
-                      name: item.name,
-                      price: item.price,
-                      quantity: item.quantity,
-                      image: item.image,
-                    }));
-
-                    const orderRes = await fetch("/api/orders", {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({
-                        userId: dbUser.id,
-                        items: JSON.stringify(items),
-                        status: "pending",
-                      }),
-                    });
-
-                    if (orderRes.ok) {
-                      // Clear cart and navigate
-                      setCart([]);
-                      setIsDrawerOpen(false);
-                      router.push("/admin/order");
-                    } else {
-                      alert("Failed to create order");
-                    }
-                  } catch (error) {
-                    console.error("Checkout error:", error);
-                    alert("An error occurred during checkout");
-                  }
-                }}
-              >
-                Checkout
-              </Button>
             </DrawerFooter>
           )}
         </DrawerContent>

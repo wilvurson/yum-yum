@@ -18,14 +18,7 @@ export async function GET(request: Request) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
       }
 
-      // If user doesn't have a username, set it from email
-      if (!dbUser.username) {
-        const username = email.split("@")[0];
-        dbUser = await prisma.user.update({
-          where: { email },
-          data: { username },
-        });
-      }
+      // Username field not in schema, skipping update
 
       return NextResponse.json(dbUser);
     }
@@ -54,16 +47,6 @@ export async function GET(request: Request) {
       );
     }
 
-    // If user doesn't have a username, set it from email
-    if (!dbUser.username) {
-      const username = userEmail.split("@")[0];
-      dbUser = await prisma.user.update({
-        where: { email: userEmail },
-        data: { username },
-      });
-    }
-
-    // Always return current user now
     return NextResponse.json(dbUser);
   } catch (error) {
     console.error("Error fetching user:", error);
@@ -85,9 +68,6 @@ export async function POST() {
     const email = user.emailAddresses[0]?.emailAddress;
     const name =
       `${user.firstName || ""} ${user.lastName || ""}`.trim() || "User";
-    // Generate username from email (part before @)
-    const username = email.split("@")[0];
-
     if (!email) {
       return NextResponse.json({ error: "Email not found" }, { status: 400 });
     }
@@ -96,7 +76,7 @@ export async function POST() {
     const dbUser = await prisma.user.upsert({
       where: { email },
       update: { name },
-      create: { email, name, username },
+      create: { email, name },
     });
 
     return NextResponse.json(dbUser);

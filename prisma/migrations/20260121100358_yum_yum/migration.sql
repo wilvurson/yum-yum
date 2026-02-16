@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Food" ALTER COLUMN "image" DROP DEFAULT;

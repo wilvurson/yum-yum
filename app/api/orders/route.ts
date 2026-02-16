@@ -104,8 +104,17 @@ export async function POST(request: NextRequest) {
     // Fetch the complete order with items
     const completeOrder = await prisma.order.findUnique({
       where: { id: order.id },
-      include: { items: true },
+      include: { items: true, user: true },
     });
+
+    try {
+      const io = (global as any).io;
+      if (io) {
+        io.to("admin-orders").emit("new-order", completeOrder);
+      }
+    } catch (err) {
+      console.error("Socket emit error:", err);
+    }
 
     return NextResponse.json(completeOrder, { status: 201 });
   } catch (error) {

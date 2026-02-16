@@ -49,18 +49,18 @@ export function AppSidebar({
   return (
     <aside
       className={cn(
-        "fixed left-0 top-0 z-40 h-screen bg-white border-r border-gray-200 transition-all duration-300 ease-in-out",
+        "fixed left-0 top-0 z-40 h-screen bg-card border-r border-border transition-all duration-300 ease-in-out",
         open ? "w-64" : "w-16",
       )}
     >
       {/* Header */}
-        <div className="flex h-16 items-center justify-between border-b border-gray-200 px-4 gap-4">
+        <div className="flex h-16 items-center justify-between border-b border-border px-4 gap-4">
           <Link href="/home" className="flex items-center gap-3">
-            <span className="text-xl font-bold">yum</span>
+            <span className="text-xl font-bold text-foreground">yum</span>
           </Link>
           <button
             onClick={onToggle}
-            className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-gray-100 transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg hover:bg-muted transition-colors"
           >
             {open ? (
               <ChevronLeft className="h-5 w-5" />
@@ -82,8 +82,8 @@ export function AppSidebar({
                   className={cn(
                     "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                     isActive
-                      ? "bg-orange-50 text-orange-600"
-                      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+                      ? "bg-primary/10 text-primary"
+                      : "text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                 >
                   <item.icon className="h-5 w-5 shrink-0" />
@@ -102,8 +102,8 @@ export function AppSidebar({
           className={cn(
             "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
             pathname.startsWith("/admin")
-              ? "bg-orange-50 text-orange-600"
-              : "text-gray-600 hover:bg-gray-50 hover:text-gray-900",
+              ? "bg-primary/10 text-primary"
+              : "text-muted-foreground hover:bg-muted hover:text-foreground",
           )}
         >
           <User className="h-5 w-5 shrink-0" />

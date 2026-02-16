@@ -1,3 +1,0 @@
--- AlterTable
-ALTER TABLE "Food" ALTER COLUMN "calories" DROP DEFAULT,
-ALTER COLUMN "calories" SET DATA TYPE TEXT;

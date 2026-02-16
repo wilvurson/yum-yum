@@ -226,7 +226,9 @@ export default function GroceryPage() {
         onClick={() => setIsDrawerOpen(true)}
       >
         <div className="relative">
-          <span className="text-lg">🛒</span>
+          <span className="text-lg">
+            <ShoppingCart />
+          </span>
           {cartCount > 0 && (
             <span className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-red-500 text-xs text-white flex items-center justify-center">
               {cartCount}

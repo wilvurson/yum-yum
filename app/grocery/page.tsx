@@ -114,19 +114,19 @@ export default function GroceryPage() {
   const cartCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
-    <div className="min-h-screen bg-zinc-50/50 pt-20">
+    <div className="min-h-screen bg-zinc-50/50 dark:bg-zinc-950 pt-20">
       <Navbar />
       <div className="container mx-auto px-6 py-8">
         {/* Header Section */}
         <div className="flex items-center gap-4 mb-10">
-          <div className="p-3 bg-green-100 rounded-2xl">
-            <Leaf className="w-8 h-8 text-green-600" />
+          <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-2xl">
+            <Leaf className="w-8 h-8 text-green-600 dark:text-green-400" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">
+            <h1 className="text-3xl font-bold text-zinc-900 dark:text-zinc-100 tracking-tight">
               Fresh Groceries
             </h1>
-            <p className="text-zinc-500 mt-1">
+            <p className="text-zinc-500 dark:text-zinc-400 mt-1">
               Premium quality ingredients for your healthy meals
             </p>
           </div>
@@ -136,7 +136,7 @@ export default function GroceryPage() {
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {[...Array(8)].map((_, i) => (
-              <Card key={i} className="border-zinc-200">
+              <Card key={i} className="border-zinc-200 dark:border-zinc-800">
                 <Skeleton className="w-full h-48 rounded-t-xl" />
                 <CardHeader className="pb-3">
                   <Skeleton className="h-6 w-3/4" />
@@ -159,7 +159,7 @@ export default function GroceryPage() {
             {items.map((item) => (
               <Card
                 key={item.id}
-                className="group cursor-pointer border-zinc-200 hover:border-green-200 hover:shadow-lg transition-all duration-300 overflow-hidden"
+                className="group cursor-pointer border-zinc-200 dark:border-zinc-800 hover:border-green-200 dark:hover:border-green-800 hover:shadow-lg dark:hover:shadow-green-900/20 transition-all duration-300 overflow-hidden bg-white dark:bg-zinc-900"
               >
                 {/* Image Section */}
                 <div className="relative">
@@ -170,12 +170,12 @@ export default function GroceryPage() {
                       className="w-full h-48 object-cover transition-transform duration-300 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="w-full h-48 bg-green-50 flex items-center justify-center">
-                      <Leaf className="w-16 h-16 text-green-200" />
+                    <div className="w-full h-48 bg-green-50 dark:bg-green-900/20 flex items-center justify-center">
+                      <Leaf className="w-16 h-16 text-green-200 dark:text-green-800" />
                     </div>
                   )}
                   <div className="absolute top-3 right-3">
-                    <Badge className="bg-white/90 text-zinc-900 hover:bg-white">
+                    <Badge className="bg-white/90 dark:bg-zinc-800/90 text-zinc-900 dark:text-zinc-100 hover:bg-white dark:hover:bg-zinc-700">
                       <Flame className="w-3 h-3 mr-1" />
                       {item.calPerUnit}
                     </Badge>
@@ -183,7 +183,7 @@ export default function GroceryPage() {
                 </div>
 
                 <CardHeader className="pb-3">
-                  <CardTitle className="text-lg font-semibold text-zinc-900 group-hover:text-green-700 transition-colors">
+                  <CardTitle className="text-lg font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-green-700 dark:group-hover:text-green-400 transition-colors">
                     {item.name}
                   </CardTitle>
                 </CardHeader>
@@ -191,7 +191,7 @@ export default function GroceryPage() {
                   {/* Unit Badge */}
                   <Badge
                     variant="secondary"
-                    className="bg-green-50 text-green-700 hover:bg-green-100"
+                    className="bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-900/50"
                   >
                     <Leaf className="w-3 h-3 mr-1" />
                     {item.unit}
@@ -200,14 +200,14 @@ export default function GroceryPage() {
                   {/* Price & Action */}
                   <div className="flex items-center justify-between pt-2">
                     <div className="flex items-center gap-1">
-                      <DollarSign className="w-5 h-5 text-green-600" />
-                      <span className="text-2xl font-bold text-zinc-900">
+                      <DollarSign className="w-5 h-5 text-green-600 dark:text-green-400" />
+                      <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                         {Number(item.price).toFixed(2)}
                       </span>
                     </div>
                     <Button
                       size="sm"
-                      className="bg-zinc-900 hover:bg-zinc-800 transition-colors"
+                      className="bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 transition-colors"
                       onClick={() => addToCart(item)}
                     >
                       <ShoppingCart className="w-4 h-4 mr-1" />

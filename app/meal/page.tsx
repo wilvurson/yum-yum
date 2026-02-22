@@ -330,58 +330,7 @@ export default function Page() {
                   <span className="font-medium flex items-center">
                     <ShoppingCart className="w-5 h-5 mr-2" /> Grocery Items
                   </span>
-                  <ChevronDown
-                    className={`h-4 w-4 transition-transform ${
-                      expandedSection === "grocery"
-                        ? "rotate-180 text-zinc-900"
-                        : "text-zinc-600 dark:text-zinc-400"
-                    }`}
-                  />
                 </button>
-                {expandedSection === "grocery" && (
-                  <div className="p-3 space-y-2 bg-transparent border-t-0 max-h-48 overflow-y-auto">
-                    {displayGrocery.map((item) => (
-                      <button
-                        key={item.id}
-                        onClick={() => {
-                          setCart((prev) => {
-                            const existing = prev.find(
-                              (cartItem) =>
-                                (cartItem as any).groceryItemId === item.id,
-                            );
-                            if (existing) {
-                              return prev.map((cartItem) =>
-                                (cartItem as any).groceryItemId === item.id
-                                  ? {
-                                      ...cartItem,
-                                      quantity: cartItem.quantity + 1,
-                                    }
-                                  : cartItem,
-                              );
-                            }
-                            return [
-                              ...prev,
-                              {
-                                ...item,
-                                groceryItemId: item.id,
-                                quantity: 1,
-                              } as any,
-                            ];
-                          });
-                          toast.success(`${item.name} added to cart!`);
-                        }}
-                        className="block w-full text-left p-2 rounded-lg text-sm bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700 text-zinc-900 dark:text-zinc-100 transition-colors cursor-pointer"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span>{item.name}</span>
-                          <span className="text-xs text-zinc-600 dark:text-zinc-400">
-                            ${Number(item.price).toFixed(2)}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
             </div>
           </section>
@@ -402,30 +351,32 @@ export default function Page() {
                   </h2>
                 )}
                 {expandedSection === "grocery" && displayGrocery.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     {displayGrocery.map((item) => (
                       <div
                         key={item.id}
-                        className="bg-white dark:bg-zinc-800 p-4 rounded-[20px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_12px_30px_rgba(0,0,0,0.4)] transition-shadow flex flex-col border border-zinc-100 dark:border-zinc-700"
+                        className="group bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 hover:border-green-300 hover:shadow-xl transition-all duration-300 flex flex-row items-center"
                       >
                         <img
                           src={item.image || "https://via.placeholder.com/150"}
                           alt={item.name}
-                          className="w-full h-32 object-cover rounded-lg mb-3"
+                          className="w-24 h-24 object-contain bg-zinc-100 dark:bg-zinc-800 rounded-l-2xl"
                         />
-                        <div className="flex justify-between items-center">
+                        <div className="flex-1 p-3">
                           <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
                             {item.name}
                           </h3>
-                          <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
-                            ${Number(item.price).toFixed(2)}
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                            {item.unit}
                           </p>
+                          <div className="flex justify-between items-center mt-2">
+                            <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
+                              ${Number(item.price).toFixed(2)}
+                            </p>
+                          </div>
                         </div>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          {item.unit}
-                        </p>
                         <Button
-                          className="w-full mt-3"
+                          className="mr-3"
                           size="sm"
                           onClick={() => {
                             setCart((prev) => {
@@ -464,35 +415,52 @@ export default function Page() {
                     No grocery items available.
                   </p>
                 ) : foods.length > 0 ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-4">
                     {foods.map((food) => (
                       <div
                         key={food.id}
-                        className="bg-white dark:bg-zinc-800 p-4 rounded-[20px] shadow-[0_8px_20px_rgba(0,0,0,0.08)] dark:shadow-[0_8px_20px_rgba(0,0,0,0.3)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_12px_30px_rgba(0,0,0,0.4)] transition-shadow flex flex-col border border-zinc-100 dark:border-zinc-700"
+                        className="group bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 hover:border-[#7B61FF]/30 hover:shadow-xl transition-all duration-300 flex flex-row items-center"
                       >
-                        <img
-                          src={food.image}
-                          alt={food.name}
-                          className="w-full h-32 object-cover rounded-lg mb-3"
-                        />
-                        <div className="flex justify-between items-center">
-                          <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                        <div className="relative overflow-hidden">
+                          <img
+                            src={food.image}
+                            alt={food.name}
+                            className="w-full h-48 object-contain bg-zinc-100 dark:bg-zinc-800 transition-transform duration-500 group-hover:scale-105"
+                          />
+                          <div className="absolute top-3 left-3 px-2 py-1 bg-white/90 dark:bg-zinc-800/90 rounded-full flex items-center gap-1">
+                            <span className="text-yellow-500">★</span>
+                            <span className="text-xs font-medium text-zinc-900 dark:text-zinc-100">
+                              4.5
+                            </span>
+                          </div>
+                          <button
+                            onClick={() => addToCart(food)}
+                            className="absolute bottom-3 right-3 w-10 h-10 bg-[#7B61FF] hover:bg-[#6a52e0] rounded-full flex items-center justify-center text-white shadow-lg opacity-0 group-hover:opacity-100 transition-all duration-300"
+                          >
+                            <ShoppingCart className="w-5 h-5" />
+                          </button>
+                        </div>
+                        <div className="p-4 flex flex-col flex-1">
+                          <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-[#7B61FF] transition-colors">
                             {food.name}
                           </h3>
-                          <p className="font-bold text-sm text-zinc-900 dark:text-zinc-100">
-                            ${Number(food.price).toFixed(2)}
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
+                            {food.mealType.name}
                           </p>
+                          <div className="mt-auto pt-3 flex items-center justify-between">
+                            <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+                              ${Number(food.price).toFixed(2)}
+                            </span>
+                            <Button
+                              size="sm"
+                              className="bg-zinc-900 dark:bg-zinc-100 hover:bg-zinc-800 dark:hover:bg-zinc-200 text-white dark:text-zinc-900 rounded-full px-4"
+                              onClick={() => addToCart(food)}
+                            >
+                              <ShoppingCart className="w-4 h-4 mr-1" />
+                              Add
+                            </Button>
+                          </div>
                         </div>
-                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-1">
-                          {food.mealType.name}
-                        </p>
-                        <Button
-                          className="w-full mt-3"
-                          size="sm"
-                          onClick={() => addToCart(food)}
-                        >
-                          Buy
-                        </Button>
                       </div>
                     ))}
                   </div>

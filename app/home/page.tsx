@@ -6,7 +6,6 @@ import { Apple, Dumbbell, Map, Utensils } from "lucide-react";
 import Schedule from "../componet/schedule/schedule";
 import Report from "../componet/report/rep";
 import Leaderboard from "../componet/leaderboard/ldrbrd";
-import { TbRosetteNumber1, TbRosetteNumber2, TbRosetteNumber3 } from "react-icons/tb";
 
 type ScheduleItem = {
   id: number;
@@ -292,7 +291,7 @@ export default function Page() {
           {/* RIGHT: Leaderboard & Friends */}
           <div className="space-y-6 lg:w-[280px]">
             {/* Leaderboard */}
-            <Leaderboard/>
+            <Leaderboard />
           </div>
         </div>
       </div>

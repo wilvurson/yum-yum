@@ -80,56 +80,6 @@ async function main() {
     },
   });
 
-  // Create users
-  const adminUser = await prisma.user.upsert({
-    where: { email: "admin@example.com" },
-    update: {},
-    create: {
-      name: "Admin User",
-      email: "admin@example.com",
-      isAdmin: true,
-    },
-  });
-
-  const clientUser = await prisma.user.upsert({
-    where: { email: "client@example.com" },
-    update: {},
-    create: {
-      name: "Client User",
-      email: "client@example.com",
-      isAdmin: false,
-    },
-  });
-
-  // Create orders
-  await prisma.order.upsert({
-    where: { id: 1 },
-    update: {},
-    create: {
-      userId: clientUser.id,
-      status: "PENDING",
-      totalPrice: 13,
-      items: {
-        create: [
-          {
-            food: {
-              connect: { id: 1 },
-            },
-            quantity: 2,
-            price: 10,
-          },
-          {
-            food: {
-              connect: { id: 2 },
-            },
-            quantity: 1,
-            price: 3,
-          },
-        ],
-      },
-    },
-  });
-
   // Create grocery items
   await prisma.groceryItem.upsert({
     where: { id: 1 },

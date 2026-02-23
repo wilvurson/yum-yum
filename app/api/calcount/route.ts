@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { currentUser } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 
 interface CalcountRequest {
@@ -40,7 +41,7 @@ interface GoalScenario {
 function calculateMacros(
   calories: number,
   goal: string,
-  weight: number
+  weight: number,
 ): Macros {
   let proteinFactor: number;
   if (goal === "build muscle") {
@@ -81,6 +82,19 @@ function calculateMacros(
 
 export async function POST(request: NextRequest) {
   try {
+    // Get the current authenticated user from Clerk
+    const clerkUser = await currentUser();
+
+    if (!clerkUser) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userEmail = clerkUser.emailAddresses[0]?.emailAddress;
+
+    if (!userEmail) {
+      return NextResponse.json({ error: "Email not found" }, { status: 400 });
+    }
+
     const body: CalcountRequest = await request.json();
 
     // Validation
@@ -94,7 +108,7 @@ export async function POST(request: NextRequest) {
     ) {
       return NextResponse.json(
         { error: "Missing required fields" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -113,7 +127,7 @@ export async function POST(request: NextRequest) {
     if (age < 10 || age > 70) {
       return NextResponse.json(
         { error: "Invalid date of birth" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -140,22 +154,25 @@ export async function POST(request: NextRequest) {
     // Calculate BMI
     const heightMeters = height / 100;
     const bmi = Math.round((weight / (heightMeters * heightMeters)) * 10) / 10;
-    
+
     let bmiStatus: string;
     let bmiMessage: string;
-    
+
     if (bmi < 18.5) {
       bmiStatus = "Underweight";
-      bmiMessage = "You are below a healthy weight range. Consider consulting a nutritionist.";
+      bmiMessage =
+        "You are below a healthy weight range. Consider consulting a nutritionist.";
     } else if (bmi < 25) {
       bmiStatus = "Normal";
       bmiMessage = "You are currently in a healthy weight range.";
     } else if (bmi < 30) {
       bmiStatus = "Overweight";
-      bmiMessage = "You are above a healthy weight range. Consider gradual weight loss.";
+      bmiMessage =
+        "You are above a healthy weight range. Consider gradual weight loss.";
     } else {
       bmiStatus = "Obese";
-      bmiMessage = "You are significantly above a healthy weight range. Consult a healthcare provider.";
+      bmiMessage =
+        "You are significantly above a healthy weight range. Consult a healthcare provider.";
     }
 
     // Safety check for teenagers
@@ -207,14 +224,13 @@ export async function POST(request: NextRequest) {
     const proteinCalories = proteinGrams * 4; // 1g protein = 4 kcal
 
     // Step 2: Calculate fat (20-25% of total calories for build muscle, 25% for others)
-    const fatPercentage =
-      body.mainGoal === "build muscle" ? 0.22 : 0.25; // Slightly lower for muscle building
+    const fatPercentage = body.mainGoal === "build muscle" ? 0.22 : 0.25; // Slightly lower for muscle building
     const fatCalories = Math.round(recommendedCalories * fatPercentage);
     const fatGrams = Math.round(fatCalories / 9); // 1g fat = 9 kcal
 
     // Step 3: Calculate carbs (remaining calories)
     const carbCalories = Math.round(
-      recommendedCalories - proteinCalories - fatCalories
+      recommendedCalories - proteinCalories - fatCalories,
     );
     const carbGrams = Math.round(carbCalories / 4); // 1g carbs = 4 kcal
 
@@ -229,15 +245,21 @@ export async function POST(request: NextRequest) {
     if (body.mainGoal === "lose weight") {
       // ~0.5kg per week per 500 kcal deficit
       weightChangeRate = (Math.abs(caloriesDelta) / 500) * 0.5;
-      weightChangeMessage = `Expected weight loss: ~${weightChangeRate.toFixed(1)} kg/week`;
+      weightChangeMessage = `Expected weight loss: ~${weightChangeRate.toFixed(
+        1,
+      )} kg/week`;
     } else if (body.mainGoal === "gain weight") {
       // ~0.5kg per week per 500 kcal surplus
       weightChangeRate = (caloriesDelta / 500) * 0.5;
-      weightChangeMessage = `Expected weight gain: ~${weightChangeRate.toFixed(1)} kg/week`;
+      weightChangeMessage = `Expected weight gain: ~${weightChangeRate.toFixed(
+        1,
+      )} kg/week`;
     } else if (body.mainGoal === "build muscle") {
       // ~0.25-0.4kg lean mass per week per 300 kcal surplus (only 25% is muscle)
       weightChangeRate = (caloriesDelta / 300) * 0.3;
-      weightChangeMessage = `Expected lean mass gain: ~${weightChangeRate.toFixed(1)} kg/month`;
+      weightChangeMessage = `Expected lean mass gain: ~${weightChangeRate.toFixed(
+        1,
+      )} kg/month`;
     }
 
     // Step 6: Calculate goal weight scenarios if goalWeight is provided
@@ -268,7 +290,7 @@ export async function POST(request: NextRequest) {
         const scenarioMacros = calculateMacros(
           Math.round(scenarioCalorieDaily),
           body.mainGoal,
-          weight
+          weight,
         );
 
         goalWeightScenarios.push({
@@ -287,6 +309,72 @@ export async function POST(request: NextRequest) {
         });
       }
     }
+
+    // Find or create the user in the database
+    let dbUser = await prisma.user.findUnique({
+      where: { email: userEmail },
+    });
+
+    if (!dbUser) {
+      // Create the user if they don't exist
+      const name =
+        `${clerkUser.firstName || ""} ${clerkUser.lastName || ""}`.trim() ||
+        "User";
+      dbUser = await prisma.user.create({
+        data: {
+          email: userEmail,
+          name,
+        },
+      });
+    }
+
+    // Upsert the UserHealthProfile with the calculated data
+    const healthProfile = await prisma.userHealthProfile.upsert({
+      where: { userId: dbUser.id },
+      update: {
+        age,
+        sex: body.sex,
+        height: height,
+        weight: weight,
+        mainGoal: body.mainGoal,
+        goalWeight: body.goalWeight || null,
+        activityLevel: body.activityLevel,
+        bmr: Math.round(bmr),
+        tdee: Math.round(tdee),
+        recommendedCalories: Math.round(recommendedCalories),
+        proteinGrams,
+        proteinCalories,
+        fatGrams,
+        fatCalories,
+        carbsGrams: carbGrams,
+        carbsCalories: carbCalories,
+        waterLiters: waterIntakeLiters,
+        bmi,
+        bmiStatus,
+      },
+      create: {
+        userId: dbUser.id,
+        age,
+        sex: body.sex,
+        height: height,
+        weight: weight,
+        mainGoal: body.mainGoal,
+        goalWeight: body.goalWeight || null,
+        activityLevel: body.activityLevel,
+        bmr: Math.round(bmr),
+        tdee: Math.round(tdee),
+        recommendedCalories: Math.round(recommendedCalories),
+        proteinGrams,
+        proteinCalories,
+        fatGrams,
+        fatCalories,
+        carbsGrams: carbGrams,
+        carbsCalories: carbCalories,
+        waterLiters: waterIntakeLiters,
+        bmi,
+        bmiStatus,
+      },
+    });
 
     return NextResponse.json({
       age,
@@ -323,12 +411,13 @@ export async function POST(request: NextRequest) {
         liters: waterIntakeLiters,
         ml: Math.round(weight * 35),
       },
+      healthProfileId: healthProfile.id,
     });
   } catch (error) {
     console.error("Calcount error:", error);
     return NextResponse.json(
       { error: "Failed to calculate calories" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Navbar from "../navbar/navber";
+import { TbRosetteNumber1, TbRosetteNumber2, TbRosetteNumber3 } from "react-icons/tb";
 
 type LeaderboardUser = {
   id: number;
@@ -40,9 +41,9 @@ export default function LeaderboardPage() {
   };
 
   const getRankIcon = (rank: number) => {
-    if (rank === 1) return "🥇";
-    if (rank === 2) return "🥈";
-    if (rank === 3) return "🥉";
+    if (rank === 1) return <TbRosetteNumber1 size={28}/>;
+    if (rank === 2) return <TbRosetteNumber2 size={28} />;
+    if (rank === 3) return <TbRosetteNumber3 size={28} />;
     return rank;
   };
 

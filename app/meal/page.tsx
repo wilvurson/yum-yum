@@ -65,6 +65,8 @@ export default function Page() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [selectedDelivery, setSelectedDelivery] = useState<string>("home");
+  const [showLocationInput, setShowLocationInput] = useState(false);
+  const [deliveryLocation, setDeliveryLocation] = useState("");
 
   // Accordion state for the left sidebar
   const [expandedSection, setExpandedSection] = useState<
@@ -528,10 +530,72 @@ export default function Page() {
                   </div>
 
                   {/* Conditional Action Buttons */}
-                  {selectedDelivery === "home" && (
-                    <Button className="w-full bg-[#7B61FF] hover:bg-[#6a52e0] text-white">
-                      <MapPinPlus className="mr-2 h-4 w-4" /> Add Location
-                    </Button>
+                  {selectedDelivery === "home" &&
+                    !showLocationInput &&
+                    !deliveryLocation && (
+                      <Button
+                        className="w-full bg-[#7B61FF] hover:bg-[#6a52e0] text-white"
+                        onClick={() => setShowLocationInput(true)}
+                      >
+                        <MapPinPlus className="mr-2 h-4 w-4" /> Add Location
+                      </Button>
+                    )}
+                  {selectedDelivery === "home" &&
+                    !showLocationInput &&
+                    deliveryLocation && (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 p-3 rounded-lg bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800">
+                          <MapPinPlus className="h-4 w-4 text-green-600 dark:text-green-400" />
+                          <span className="text-sm text-green-700 dark:text-green-300 flex-1 truncate">
+                            {deliveryLocation}
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 px-2 text-xs"
+                            onClick={() => setShowLocationInput(true)}
+                          >
+                            Edit
+                          </Button>
+                        </div>
+                      </div>
+                    )}
+                  {selectedDelivery === "home" && showLocationInput && (
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <MapPinPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400" />
+                        <input
+                          type="text"
+                          placeholder="Enter your delivery address..."
+                          value={deliveryLocation}
+                          onChange={(e) => setDeliveryLocation(e.target.value)}
+                          className="w-full pl-10 pr-4 py-3 rounded-lg border border-zinc-200 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-[#7B61FF] focus:border-transparent"
+                        />
+                      </div>
+                      {deliveryLocation && (
+                        <div className="flex gap-2">
+                          <Button
+                            className="flex-1 bg-[#7B61FF] hover:bg-[#6a52e0] text-white"
+                            onClick={() => {
+                              toast.success("Location saved successfully!");
+                              setShowLocationInput(false);
+                            }}
+                          >
+                            Confirm Location
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="flex-1"
+                            onClick={() => {
+                              setDeliveryLocation("");
+                              setShowLocationInput(false);
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      )}
+                    </div>
                   )}
                   {selectedDelivery === "pickup" && (
                     <Button className="w-full bg-[#7B61FF] hover:bg-[#6a52e0] text-white">
@@ -727,6 +791,15 @@ export default function Page() {
                       return;
                     }
 
+                    // Validate delivery location if delivery is selected
+                    if (
+                      selectedDelivery === "home" &&
+                      !deliveryLocation.trim()
+                    ) {
+                      toast.error("Please enter a delivery address");
+                      return;
+                    }
+
                     try {
                       // Get the user ID from Clerk and map to database user
                       const email = user.primaryEmailAddress?.emailAddress;
@@ -761,6 +834,11 @@ export default function Page() {
                           userId: dbUser.id,
                           items: JSON.stringify(items),
                           status: "pending",
+                          deliveryType: selectedDelivery,
+                          deliveryAddress:
+                            selectedDelivery === "home"
+                              ? deliveryLocation
+                              : null,
                         }),
                       });
 

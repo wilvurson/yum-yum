@@ -27,6 +27,8 @@ interface Order {
   user: User;
   items: OrderItem[];
   status: string;
+  deliveryType: string;
+  deliveryAddress: string | null;
   createdAt: string;
 }
 
@@ -250,6 +252,12 @@ export default function AdminOrderPage() {
                     Total
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-card-foreground">
+                    Delivery
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-card-foreground">
+                    Location
+                  </th>
+                  <th className="px-6 py-3 text-left text-sm font-semibold text-card-foreground">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-card-foreground">
@@ -261,7 +269,7 @@ export default function AdminOrderPage() {
                 {orders.length === 0 ? (
                   <tr>
                     <td
-                      colSpan={6}
+                      colSpan={8}
                       className="px-6 py-8 text-center text-muted-foreground"
                     >
                       No orders found
@@ -286,6 +294,34 @@ export default function AdminOrderPage() {
                       </td>
                       <td className="px-6 py-4 text-sm font-semibold text-foreground">
                         ${getOrderTotal(order.items).toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4 text-sm">
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            order.deliveryType === "home"
+                              ? "bg-purple-100 text-purple-700"
+                              : "bg-orange-100 text-orange-700"
+                          }`}
+                        >
+                          {order.deliveryType === "home"
+                            ? "Delivery"
+                            : "Pickup"}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-muted-foreground">
+                        {order.deliveryType === "home" &&
+                        order.deliveryAddress ? (
+                          <span
+                            className="text-xs max-w-[200px] truncate block"
+                            title={order.deliveryAddress}
+                          >
+                            📍 {order.deliveryAddress}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">
+                            —
+                          </span>
+                        )}
                       </td>
                       <td className="px-6 py-4 text-sm">
                         <span

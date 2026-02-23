@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
-import { OrderStatus } from "@/lib/generated/prisma/enums";
+import { OrderStatus } from "@prisma/client";
 
 export async function GET() {
   try {
@@ -47,7 +47,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, items, status, totalPrice } = await request.json();
+    const { userId, items, status, totalPrice, deliveryType, deliveryAddress } =
+      await request.json();
 
     // Parse items if it's a JSON string
     let orderItems = items;
@@ -82,6 +83,8 @@ export async function POST(request: NextRequest) {
         userId,
         status: orderStatus,
         totalPrice: totalPrice || 0,
+        deliveryType: deliveryType || "pickup",
+        deliveryAddress: deliveryAddress || null,
       },
     });
 

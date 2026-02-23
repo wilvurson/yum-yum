@@ -88,18 +88,31 @@ model User {
 }
 
 model UserHealthProfile {
-  id            Int      @id @default(autoincrement())
-  userId        Int      @unique
-  age           Int
-  sex           String
-  height        Int
-  weight        Float
-  mainGoal      String
-  goalWeight    Float?
-  activityLevel String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  user          User     @relation(fields: [userId], references: [id])
+  id               Int      @id @default(autoincrement())
+  userId           Int      @unique
+  age              Int
+  sex              String
+  height           Int
+  weight           Float
+  mainGoal         String
+  goalWeight       Float?
+  activityLevel    String
+  // Calorie and macro information
+  bmr              Int?
+  tdee             Int?
+  recommendedCalories Int?
+  proteinGrams     Int?
+  proteinCalories  Int?
+  fatGrams         Int?
+  fatCalories      Int?
+  carbsGrams       Int?
+  carbsCalories    Int?
+  waterLiters      Float?
+  bmi              Float?
+  bmiStatus        String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id])
 }
 
 model Friendship {

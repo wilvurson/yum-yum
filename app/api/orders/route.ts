@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
-import { OrderStatus } from "@/lib/generated/prisma/enums";
+import { OrderStatus } from "@prisma/client";
 
 export async function GET() {
   try {

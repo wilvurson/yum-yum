@@ -47,7 +47,8 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId, items, status, totalPrice } = await request.json();
+    const { userId, items, status, totalPrice, deliveryType, deliveryAddress } =
+      await request.json();
 
     // Parse items if it's a JSON string
     let orderItems = items;
@@ -82,6 +83,8 @@ export async function POST(request: NextRequest) {
         userId,
         status: orderStatus,
         totalPrice: totalPrice || 0,
+        deliveryType: deliveryType || "pickup",
+        deliveryAddress: deliveryAddress || null,
       },
     });
 

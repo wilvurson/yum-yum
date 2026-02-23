@@ -1,14 +1,100 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   TbRosetteNumber1,
   TbRosetteNumber2,
   TbRosetteNumber3,
 } from "react-icons/tb";
 
+type ScheduleItem = {
+  id: number;
+  date: string;
+  startTime: string;
+  endTime: string;
+  activity: string;
+  completed: boolean;
+};
+
+type UserData = {
+  name: string;
+  streak?: number;
+  points?: number;
+};
+
+
 export default function Leaderboard() {
-  const [leaderboard, setLeaderboard] = useState<
-    Array<{ id: number; name: string; points: number; rank: number }>
-  >([]);
+    const [schedule, setSchedule] = useState<ScheduleItem[]>([]);
+    const [currentTime, setCurrentTime] = useState("");
+    const [userName, setUserName] = useState("User");
+    const [selectedDate, setSelectedDate] = useState<string>("");
+    const [streak, setStreak] = useState(0);
+    const [points, setPoints] = useState(0);
+    const [leaderboard, setLeaderboard] = useState<
+      Array<{ id: number; name: string; points: number; rank: number }>
+    >([]);
+  
+    const today = new Date().toISOString().split("T")[0];
+  
+    useEffect(() => {
+      // Ensure user is DB and fetch user data
+      fetch("/api/users", { method: "POST" })
+        .then((res) => {
+          if (!res.ok) {
+            console.error("Failed to ensure user in DB");
+          }
+          return fetch("/api/users");
+        })
+        .then((res) => res.json())
+        .then((data: UserData) => {
+          if (data.name) {
+            setUserName(data.name);
+          }
+          if (data.streak !== undefined) {
+            setStreak(data.streak);
+          }
+          if (data.points !== undefined) {
+            setPoints(data.points);
+          }
+        })
+        .catch((err) => console.error("Error ensuring user:", err));
+  
+      // Update streak and points on daily visit
+      fetch("/api/users/streak", { method: "POST" })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.streak !== undefined) {
+            setStreak(data.streak);
+          }
+          if (data.points !== undefined) {
+            setPoints(data.points);
+          }
+        })
+        .catch((err) => console.error("Error updating streak:", err));
+  
+      // Fetch leaderboard data
+      fetch("/api/leaderboard")
+        .then((res) => res.json())
+        .then((data) => {
+          setLeaderboard(data);
+        })
+        .catch((err) => console.error("Error fetching leaderboard:", err));
+  
+      // Set initial selected date and fetch schedules
+      setSelectedDate(today);
+      fetch(`/api/schedules?date=${today}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data)) {
+            setSchedule(data);
+          } else {
+            console.error("Invalid data format:", data);
+            setSchedule([]);
+          }
+        })
+        .catch((err) => {
+          console.error(err);
+          setSchedule([]);
+        });
+    }, [today]);
   return (
     <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
       <div className="mb-4 flex items-center justify-between">

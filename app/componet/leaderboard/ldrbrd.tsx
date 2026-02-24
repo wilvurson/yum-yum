@@ -4,6 +4,7 @@ import {
   TbRosetteNumber2,
   TbRosetteNumber3,
 } from "react-icons/tb";
+import Snowfall from "react-snowfall";
 
 type ScheduleItem = {
   id: number;

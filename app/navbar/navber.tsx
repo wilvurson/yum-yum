@@ -41,7 +41,7 @@ export default function Navbar() {
     <header className="fixed top-0 left-0 top-0 w-full z-50">
       {/* Glassmorphism container */}
       <div className="mx-4">
-        <nav className="relative overflow-hidden rounded-2xl bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl border border-white/20 dark:border-zinc-800/50 shadow-lg shadow-black/5 dark:shadow-black/20">
+        <nav className="relative overflow-hidden rounded-2xl bg-background/80 dark:bg-zinc-950/80 backdrop-blur-xl border border-border/50 dark:border-zinc-800/50 shadow-lg shadow-black/5 dark:shadow-black/20">
           {/* Gradient accent line at top */}
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-orange-500 via-amber-500 to-orange-500" />
 
@@ -82,7 +82,7 @@ export default function Navbar() {
                       "hover:scale-105 active:scale-95",
                       active
                         ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25"
-                        : "text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80",
+                        : "text-muted-foreground hover:text-foreground hover:bg-secondary/80 dark:hover:bg-zinc-800/80",
                     )}
                   >
                     {/* Icon with animation */}
@@ -91,15 +91,13 @@ export default function Navbar() {
                         "h-4 w-4 transition-transform duration-300 group-hover:scale-110",
                         active
                           ? "text-white"
-                          : "text-zinc-500 dark:text-zinc-400 group-hover:text-zinc-700 dark:group-hover:text-zinc-300",
+                          : "text-muted-foreground group-hover:text-foreground",
                       )}
                     />
                     <span
                       className={cn(
                         "text-sm font-medium hidden sm:inline-block transition-colors",
-                        active
-                          ? "text-white"
-                          : "group-hover:text-zinc-900 dark:group-hover:text-zinc-100",
+                        active ? "text-white" : "group-hover:text-foreground",
                       )}
                     >
                       {item.label}
@@ -112,7 +110,7 @@ export default function Navbar() {
 
                     {/* Hover gradient overlay */}
                     {!active && (
-                      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-orange-500/5 to-amber-500/5" />
+                      <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-orange-500/10 to-amber-500/10" />
                     )}
                   </Link>
                 );
@@ -128,8 +126,8 @@ export default function Navbar() {
                   "relative group flex items-center justify-center w-9 h-9 rounded-xl transition-all duration-300",
                   "hover:scale-105 active:scale-95",
                   isActive("/admin")
-                    ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25"
-                    : "text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-100 hover:bg-zinc-100/80 dark:hover:bg-zinc-800/80",
+                        ? "bg-gradient-to-r from-orange-500 to-amber-500 text-white shadow-lg shadow-orange-500/25"
+                        : "text-muted-foreground hover:text-foreground hover:bg-orange-50 dark:hover:bg-orange-950/30",
                 )}
               >
                 <Shield
@@ -141,7 +139,7 @@ export default function Navbar() {
 
                 {/* Hover gradient overlay */}
                 {!isActive("/admin") && (
-                  <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-orange-500/5 to-amber-500/5" />
+                  <div className="absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-orange-500/10 to-amber-500/10" />
                 )}
               </Link>
 

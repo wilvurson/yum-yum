@@ -110,7 +110,7 @@ export default function Page() {
   }, [today]);
 
   return (
-    <div className="min-h-screen bg-white dark:bg-zinc-950 p-8 text-black dark:text-white transition-colors">
+    <div className="min-h-screen bg-background text-foreground p-8 transition-colors">
       {/* Navbar */}
       <div className="px-7 pt-6">
         <Navbar />
@@ -120,13 +120,10 @@ export default function Page() {
       <div className="px-7 pt-4">
         <div className="mt-6 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <h1 className="text-4xl font-extrabold tracking-tight text-zinc-900 dark:text-zinc-100">
-              Hello{" "}
-              <span className="text-zinc-900 dark:text-zinc-100">
-                "{userName}"
-              </span>
+            <h1 className="text-4xl font-extrabold tracking-tight text-foreground">
+              Hello <span className="text-foreground">"{userName}"</span>
             </h1>
-            <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
+            <p className="mt-1 text-sm text-muted-foreground">
               {schedule.length === 0
                 ? "You have no activities today"
                 : `You have ${schedule.length} activities today`}
@@ -173,17 +170,17 @@ export default function Page() {
                 <Report />
 
                 {/* Categories */}
-                <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
+                <section className="rounded-[28px] bg-card p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      <div className="text-sm font-semibold text-card-foreground">
                         Categories
                       </div>
-                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                      <div className="text-xs text-muted-foreground">
                         Choose your category
                       </div>
                     </div>
-                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">
+                    <button className="grid h-8 w-8 place-items-center rounded-full bg-secondary hover:bg-accent">
                       ⋯
                     </button>
                   </div>
@@ -221,7 +218,7 @@ export default function Page() {
                         >
                           {category.icon}
                         </div>
-                        <div className="text-xs font-medium text-zinc-700 dark:text-zinc-300">
+                        <div className="text-xs font-medium text-foreground">
                           {category.name}
                         </div>
                       </a>
@@ -230,17 +227,17 @@ export default function Page() {
                 </section>
 
                 {/* Special for you */}
-                <section className="rounded-[28px] bg-white dark:bg-zinc-900 p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
+                <section className="rounded-[28px] bg-card p-6 shadow-[0_12px_30px_rgba(0,0,0,0.06)] dark:shadow-[0_12px_30px_rgba(0,0,0,0.3)]">
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">
+                      <div className="text-sm font-semibold text-card-foreground">
                         Special for you
                       </div>
-                      <div className="text-xs text-zinc-500 dark:text-zinc-400">
+                      <div className="text-xs text-muted-foreground">
                         Recommended based on your interests
                       </div>
                     </div>
-                    <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700">
+                    <button className="grid h-8 w-8 place-items-center rounded-full bg-secondary hover:bg-accent">
                       ⋯
                     </button>
                   </div>
@@ -262,7 +259,7 @@ export default function Page() {
                     ].map((recipe, idx) => (
                       <div
                         key={idx}
-                        className="flex items-center gap-4 rounded-2xl bg-white dark:bg-zinc-800 p-3 shadow-sm ring-1 ring-zinc-100 dark:ring-zinc-700"
+                        className="flex items-center gap-4 rounded-2xl bg-secondary p-3 shadow-sm ring-1 ring-border"
                       >
                         <div
                           className={`flex h-16 w-16 items-center justify-center rounded-xl text-2xl ${recipe.color}`}
@@ -270,14 +267,14 @@ export default function Page() {
                           🥗
                         </div>
                         <div className="flex-1">
-                          <div className="font-medium text-zinc-900 dark:text-zinc-100">
+                          <div className="font-medium text-foreground">
                             {recipe.title}
                           </div>
-                          <div className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                          <div className="mt-1 text-xs text-muted-foreground">
                             {recipe.time} • {recipe.calories}
                           </div>
                         </div>
-                        <button className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-700 dark:hover:bg-zinc-600">
+                        <button className="grid h-8 w-8 place-items-center rounded-full bg-accent hover:bg-accent/80">
                           ➜
                         </button>
                       </div>

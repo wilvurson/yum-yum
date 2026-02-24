@@ -328,53 +328,65 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Upsert the UserHealthProfile with the calculated data
-    const healthProfile = await prisma.userHealthProfile.upsert({
+    // Check if health profile exists first
+    const existingProfile = await prisma.userHealthProfile.findUnique({
       where: { userId: dbUser.id },
-      update: {
-        age,
-        sex: body.sex,
-        height: height,
-        weight: weight,
-        mainGoal: body.mainGoal,
-        goalWeight: body.goalWeight || null,
-        activityLevel: body.activityLevel,
-        bmr: Math.round(bmr),
-        tdee: Math.round(tdee),
-        recommendedCalories: Math.round(recommendedCalories),
-        proteinGrams,
-        proteinCalories,
-        fatGrams,
-        fatCalories,
-        carbsGrams: carbGrams,
-        carbsCalories: carbCalories,
-        waterLiters: waterIntakeLiters,
-        bmi,
-        bmiStatus,
-      },
-      create: {
-        userId: dbUser.id,
-        age,
-        sex: body.sex,
-        height: height,
-        weight: weight,
-        mainGoal: body.mainGoal,
-        goalWeight: body.goalWeight || null,
-        activityLevel: body.activityLevel,
-        bmr: Math.round(bmr),
-        tdee: Math.round(tdee),
-        recommendedCalories: Math.round(recommendedCalories),
-        proteinGrams,
-        proteinCalories,
-        fatGrams,
-        fatCalories,
-        carbsGrams: carbGrams,
-        carbsCalories: carbCalories,
-        waterLiters: waterIntakeLiters,
-        bmi,
-        bmiStatus,
-      },
     });
+
+    let healthProfile;
+    if (existingProfile) {
+      // Update existing profile
+      healthProfile = await prisma.userHealthProfile.update({
+        where: { userId: dbUser.id },
+        data: {
+          age,
+          sex: body.sex,
+          height: height,
+          weight: weight,
+          mainGoal: body.mainGoal,
+          goalWeight: body.goalWeight || null,
+          activityLevel: body.activityLevel,
+          bmr: Math.round(bmr),
+          tdee: Math.round(tdee),
+          recommendedCalories: Math.round(recommendedCalories),
+          proteinGrams,
+          proteinCalories,
+          fatGrams,
+          fatCalories,
+          carbsGrams: carbGrams,
+          carbsCalories: carbCalories,
+          waterLiters: waterIntakeLiters,
+          bmi,
+          bmiStatus,
+        },
+      });
+    } else {
+      // Create new profile
+      healthProfile = await prisma.userHealthProfile.create({
+        data: {
+          userId: dbUser.id,
+          age,
+          sex: body.sex,
+          height: height,
+          weight: weight,
+          mainGoal: body.mainGoal,
+          goalWeight: body.goalWeight || null,
+          activityLevel: body.activityLevel,
+          bmr: Math.round(bmr),
+          tdee: Math.round(tdee),
+          recommendedCalories: Math.round(recommendedCalories),
+          proteinGrams,
+          proteinCalories,
+          fatGrams,
+          fatCalories,
+          carbsGrams: carbGrams,
+          carbsCalories: carbCalories,
+          waterLiters: waterIntakeLiters,
+          bmi,
+          bmiStatus,
+        },
+      });
+    }
 
     return NextResponse.json({
       age,

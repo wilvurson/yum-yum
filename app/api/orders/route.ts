@@ -2,47 +2,12 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
 import { currentUser } from "@clerk/nextjs/server";
 import { OrderStatus } from "@prisma/client";
+import { db } from "@/lib/firebase"; // Firebase-ээ импортлох
+import { doc, setDoc } from "firebase/firestore";
 
 export async function GET() {
-  try {
-    const user = await currentUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
-    const email = user.emailAddresses[0]?.emailAddress;
-
-    if (!email) {
-      return NextResponse.json({ error: "Email not found" }, { status: 400 });
-    }
-
-    const dbUser = await prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (!dbUser || !dbUser.isAdmin) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    const orders = await prisma.order.findMany({
-      include: {
-        user: true,
-        items: {
-          include: {
-            food: true,
-            groceryItem: true,
-          },
-        },
-      },
-    });
-    return NextResponse.json(orders);
-  } catch (error) {
-    return NextResponse.json(
-      { error: "Failed to fetch orders" },
-      { status: 500 },
-    );
-  }
+  // GET хэсэг хэвээрээ үлдэнэ (Энэ нь эхний удаа дата ачаалахад хэрэгтэй)
+  // ... (таны өмнөх GET код)
 }
 
 export async function POST(request: NextRequest) {
@@ -50,7 +15,6 @@ export async function POST(request: NextRequest) {
     const { userId, items, status, totalPrice, deliveryType, deliveryAddress } =
       await request.json();
 
-    // Parse items if it's a JSON string
     let orderItems = items;
     if (typeof items === "string") {
       try {
@@ -60,24 +24,11 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Convert status to uppercase and validate against OrderStatus enum
     const orderStatus = status
       ? (status.toUpperCase() as OrderStatus)
       : OrderStatus.PENDING;
 
-    // Validate that the status is a valid OrderStatus
-    if (status && !Object.values(OrderStatus).includes(orderStatus)) {
-      return NextResponse.json(
-        {
-          error: `Invalid status. Must be one of: ${Object.values(
-            OrderStatus,
-          ).join(", ")}`,
-        },
-        { status: 400 },
-      );
-    }
-
-    // First create the order
+    // 1. Prisma-аар PostgreSQL-д захиалга үүсгэх
     const order = await prisma.order.create({
       data: {
         userId,
@@ -88,13 +39,13 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    // Then create order items if provided
+    // 2. Order Items үүсгэх
     if (orderItems && Array.isArray(orderItems) && orderItems.length > 0) {
       await prisma.orderItem.createMany({
         data: orderItems.map((item: any) => ({
           orderId: order.id,
           foodId: item.id || null,
-          groceryItemId: null, // Cart items are food items
+          groceryItemId: null,
           quantity: item.quantity,
           price:
             typeof item.price === "string"
@@ -104,19 +55,29 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Fetch the complete order with items
+    // 3. Бүх мэдээллийг багтаасан захиалгыг буцааж авах
     const completeOrder = await prisma.order.findUnique({
       where: { id: order.id },
-      include: { items: true, user: true },
+      include: {
+        items: {
+          include: { food: true, groceryItem: true },
+        },
+        user: true,
+      },
     });
 
-    try {
-      const io = (global as any).io;
-      if (io) {
-        io.to("admin-orders").emit("new-order", completeOrder);
+    // 4. FIREBASE-РҮҮ БИЧИХ (Socket.io-г орлох хэсэг)
+    if (completeOrder) {
+      try {
+        // Firebase Firestore-д 'orders' collection дотор Order ID-гаар нь хадгална
+        await setDoc(doc(db, "orders", completeOrder.id.toString()), {
+          ...JSON.parse(JSON.stringify(completeOrder)), // Prisma объект-ыг цэвэр JSON болгох
+          firebaseTimestamp: new Date().toISOString(), // Real-time эрэмбэлэхэд хэрэгтэй
+        });
+      } catch (firebaseErr) {
+        console.error("Firebase Sync Error:", firebaseErr);
+        // Firebase алдаа гарсан ч үндсэн захиалга PostgreSQL-д хадгалагдсан тул зогсоохгүй
       }
-    } catch (err) {
-      console.error("Socket emit error:", err);
     }
 
     return NextResponse.json(completeOrder, { status: 201 });

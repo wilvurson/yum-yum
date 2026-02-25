@@ -1,22 +1,32 @@
-import { Groq } from "groq-sdk";
+import { initializeApp } from "firebase/app";
+import { getAI, getGenerativeModel, GoogleAIBackend } from "firebase/ai";
 
-const groq = new Groq();
+// TODO(developer) Replace the following with your app's Firebase configuration
+// See: https://firebase.google.com/docs/web/learn-more#config-object
+const firebaseConfig = {
+  // ...
+};
 
-const chatCompletion = await groq.chat.completions.create({
-  messages: [
-    {
-      role: "user",
-      content: "hi",
-    },
-  ],
-  model: "meta-llama/llama-4-maverick-17b-128e-instruct",
-  temperature: 1,
-  max_completion_tokens: 1024,
-  top_p: 1,
-  stream: true,
-  stop: null,
-});
+// Initialize FirebaseApp
+const firebaseApp = initializeApp(firebaseConfig);
 
-for await (const chunk of chatCompletion) {
-  process.stdout.write(chunk.choices[0]?.delta?.content || "");
+// Initialize the Gemini Developer API backend service
+const ai = getAI(firebaseApp, { backend: new GoogleAIBackend() });
+
+// Create a `GenerativeModel` instance with a model that supports your use case
+const model = getGenerativeModel(ai, { model: "gemini-3-flash-preview" });
+
+// Wrap in an async function so you can use await
+async function run() {
+  // Provide a prompt that contains text
+  const prompt = "Write a story about a magic backpack.";
+
+  // To generate text output, call generateContent with the text input
+  const result = await model.generateContent(prompt);
+
+  const response = result.response;
+  const text = response.text();
+  console.log(text);
 }
+
+run();

@@ -146,7 +146,7 @@ export default function Report() {
           </div>
         </div>
         <a
-          href="/calcount"
+          href="/stepper"
           className="grid h-8 w-8 place-items-center rounded-full bg-zinc-100 hover:bg-zinc-200 dark:bg-zinc-800 dark:hover:bg-zinc-700"
         >
           ✏️

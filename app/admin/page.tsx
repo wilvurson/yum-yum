@@ -1,9 +1,4 @@
 "use client";
-
-import { useState, useEffect } from "react";
-import { useUser } from "@clerk/nextjs";
-import { Handbag, User } from "lucide-react";
-
 interface User {
   id: number;
   name: string;
@@ -20,34 +15,91 @@ interface Order {
   createdAt: string;
 }
 
-export default function AdminPage() {
+import { useState, useEffect } from "react";
+import { useUser } from "@clerk/nextjs";
+import { toast } from "sonner";
+import { db } from "@/lib/firebase"; // Таны үүсгэсэн firebase config
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { Handbag, User } from "lucide-react";
+
+
+// ... (Interface-үүд хэвээрээ үлдэнэ)
+
+export default function AdminOrderPage() {
   const { user, isLoaded } = useUser();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState<User[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
 
+  // 1. Admin мөн эсэхийг шалгах
   useEffect(() => {
     if (!isLoaded) return;
-
     fetch("/api/users")
       .then((res) => res.json())
       .then((data) => {
         setIsAdmin(data.isAdmin);
         setLoading(false);
-      })
-      .catch((err) => {
-        console.error(err);
-        setLoading(false);
       });
   }, [isLoaded]);
 
+  // 2. Firebase-ээс Real-time өгөгдөл унших (Socket.io-ийн оронд)
   useEffect(() => {
-    if (isAdmin) {
-      fetchUsers();
-      fetchOrders();
-    }
+    if (!isAdmin) return;
+
+    // "orders" collection-ийг сонсож эхлэх
+    const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
+
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const ordersData = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as unknown as Order[];
+
+      // Шинэ захиалга нэмэгдсэн эсэхийг шалгаж Toast харуулах
+      snapshot.docChanges().forEach((change) => {
+        if (change.type === "added" && !snapshot.metadata.hasPendingWrites) {
+          toast.success("Шинэ захиалга ирлээ!");
+          // Хүсвэл энд alert sound тоглуулж болно
+        }
+      });
+
+      setOrders(ordersData);
+    }, (error) => {
+      console.error("Firebase subscription error:", error);
+      toast.error("Өгөгдөл уншихад алдаа гарлаа");
+    });
+
+    // Cleanup: Хуудаснаас гарахад Firebase холболтыг салгана
+    return () => unsubscribe();
   }, [isAdmin]);
+
+  // 3. Төлөв шинэчлэх (Firebase update)
+  const handleUpdateOrderStatus = async (orderId: string, status: string) => {
+    try {
+      const orderRef = doc(db, "orders", orderId);
+      await updateDoc(orderRef, { status });
+      toast.success("Төлөв шинэчлэгдлээ");
+    } catch (error) {
+      toast.error("Алдаа гарлаа");
+    }
+  };
+
+  // 4. Устгах (Firebase delete)
+  const handleDeleteOrder = async (orderId: string) => {
+    if (!confirm("Устгахдаа итгэлтэй байна уу?")) return;
+    try {
+      await deleteDoc(doc(db, "orders", orderId));
+      toast.success("Захиалга устлаа");
+    } catch (error) {
+      toast.error("Устгахад алдаа гарлаа");
+    }
+  };
+
+  if (loading) return <div>Уншиж байна...</div>;
+  if (!isAdmin) return <div>Хандах эрхгүй</div>;
+
+
 
   if (loading) {
     return (
@@ -59,12 +111,14 @@ export default function AdminPage() {
       </div>
     );
   }
-  
+
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="bg-card rounded-lg border border-border p-8 text-center max-w-md">
-          <h2 className="text-xl font-semibold text-card-foreground mb-2">Access Denied</h2>
+          <h2 className="text-xl font-semibold text-card-foreground mb-2">
+            Access Denied
+          </h2>
           <p className="text-muted-foreground">
             You are not an admin. Please contact an administrator for access.
           </p>
@@ -72,18 +126,6 @@ export default function AdminPage() {
       </div>
     );
   }
-
-  const fetchUsers = async () => {
-    const res = await fetch("/api/users/all");
-    const data = await res.json();
-    setUsers(data);
-  };
-
-  const fetchOrders = async () => {
-    const res = await fetch("/api/orders");
-    const data = await res.json();
-    setOrders(data);
-  };
 
   return (
     <div className="min-h-screen bg-background">

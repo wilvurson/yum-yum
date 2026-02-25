@@ -14,7 +14,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { toast } from "sonner";
-import { ArrowLeft, ArrowRight, Check, Calendar, Ruler, Scale, Target, Activity, User } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Calendar, Ruler, Scale, Target, Activity, User, Link } from "lucide-react";
 
 interface CalFormState {
   dateborn: string;
@@ -98,7 +98,7 @@ export default function StepperPage() {
         ) {
           age--;
         }
-        if (age < 1 || age > 120) return "Please enter a valid date of birth (age should be between 1-120)";
+        if (age < 10 || age > 70) return "Please enter a valid date of birth (age should be between 10-70)";
         return null;
       case 2:
         if (!formData.sex) return "Please select your gender";
@@ -290,6 +290,11 @@ export default function StepperPage() {
 
             <Button onClick={handleReset} className="w-full mt-6" size="lg">
               Calculate Again
+            </Button>
+            <Button >
+              <Link href="/" className="w-full mt-2">
+              Go back to dashboard
+              </Link>
             </Button>
           </Card>
         </div>

@@ -1,16 +1,26 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/nextjs";
-import io from "socket.io-client";
 import { toast } from "sonner";
+import { db } from "@/lib/firebase";
+import {
+  collection,
+  query,
+  orderBy,
+  onSnapshot,
+  doc,
+  updateDoc,
+  deleteDoc,
+} from "firebase/firestore";
 
-interface User {
+interface UserData {
   id: number;
   name: string;
   email: string;
   isAdmin: boolean;
 }
+
 interface OrderItem {
   id: number;
   foodId: number | null;
@@ -24,7 +34,7 @@ interface OrderItem {
 interface Order {
   id: number;
   userId: number;
-  user: User;
+  user: UserData;
   items: OrderItem[];
   status: string;
   deliveryType: string;
@@ -32,40 +42,53 @@ interface Order {
   createdAt: string;
 }
 
-function formatOrderItems(items: OrderItem[] | undefined | null) {
-  if (!items || items === null) {
-    return "No items";
-  }
+// Helper function to format order items for display
+function formatOrderItems(items: OrderItem[]): string {
+  if (!items || items.length === 0) return "No items";
+
   return items
-    .map((item: OrderItem) => {
-      const name = item.food?.name || item.groceryItem?.name || "Unknown";
+    .map((item) => {
+      const name = item.food?.name || item.groceryItem?.name || "Unknown Item";
       return `${name} x${item.quantity}`;
     })
     .join(", ");
 }
 
-function getOrderTotal(items: OrderItem[] | undefined | null) {
-  if (!items || items === null) {
-    return 0;
-  }
-  return items.reduce(
-    (sum: number, item: OrderItem) => sum + item.price * item.quantity,
-    0,
-  );
+// Helper function to calculate order total
+function getOrderTotal(items: OrderItem[]): number {
+  if (!items || items.length === 0) return 0;
+
+  return items.reduce((total, item) => {
+    return total + item.price * item.quantity;
+  }, 0);
 }
 
 export default function AdminOrderPage() {
   const { user, isLoaded } = useUser();
   const [isAdmin, setIsAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [users, setUsers] = useState<User[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
-  const socketRef = useRef<ReturnType<typeof io> | null>(null);
+  const [notifiedOrderIds, setNotifiedOrderIds] = useState<Set<string>>(
+    new Set(),
+  );
 
-  // Check if user is admin
+  // Load previously notified order IDs from localStorage on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("notifiedOrderIds");
+      if (stored) {
+        try {
+          setNotifiedOrderIds(new Set(JSON.parse(stored)));
+        } catch {
+          // ignore parse errors
+        }
+      }
+    }
+  }, []);
+
+  // 1. Check if user is admin
   useEffect(() => {
     if (!isLoaded) return;
-
     fetch("/api/users")
       .then((res) => res.json())
       .then((data) => {
@@ -78,102 +101,90 @@ export default function AdminOrderPage() {
       });
   }, [isLoaded]);
 
-  // Initialize Socket.io and fetch initial data
+  // 2. FIREBASE REAL-TIME LISTENING
   useEffect(() => {
     if (!isAdmin) return;
 
-    // Fetch initial data
-    const fetchData = async () => {
-      try {
-        const [ordersRes, usersRes] = await Promise.all([
-          fetch("/api/orders"),
-          fetch("/api/users/all"),
-        ]);
+    // Listen to "orders" collection ordered by time
+    const q = query(collection(db, "orders"), orderBy("createdAt", "desc"));
 
-        if (ordersRes.ok) {
-          const ordersData = await ordersRes.json();
-          setOrders(ordersData);
+    const unsubscribe = onSnapshot(
+      q,
+      (snapshot) => {
+        const ordersData = snapshot.docs.map((doc) => ({
+          ...doc.data(),
+          // Convert string ID from Firebase to number for UI
+          id: isNaN(Number(doc.id)) ? doc.id : Number(doc.id),
+        })) as Order[];
+
+        // Track new order IDs to notify
+        const newNotifiedIds = new Set(notifiedOrderIds);
+
+        // Show Toast when new order arrives (only for orders we haven't notified about)
+        snapshot.docChanges().forEach((change) => {
+          if (change.type === "added" && !snapshot.metadata.hasPendingWrites) {
+            const orderId = change.doc.id;
+
+            // Only show toast if we haven't already notified about this order
+            if (!notifiedOrderIds.has(orderId)) {
+              const newOrder = change.doc.data();
+              toast.success(`New Order #${orderId}`, {
+                description: `Customer: ${newOrder.user?.name || "Customer"}`,
+              });
+
+              // Add to notified set
+              newNotifiedIds.add(orderId);
+            }
+          }
+        });
+
+        // Update notified order IDs and persist to localStorage
+        if (newNotifiedIds.size > notifiedOrderIds.size) {
+          setNotifiedOrderIds(newNotifiedIds);
+          if (typeof window !== "undefined") {
+            localStorage.setItem(
+              "notifiedOrderIds",
+              JSON.stringify([...newNotifiedIds]),
+            );
+          }
         }
 
-        if (usersRes.ok) {
-          const usersData = await usersRes.json();
-          setUsers(usersData);
-        }
-      } catch (error) {
-        console.error("Failed to fetch data:", error);
-      }
-    };
+        setOrders(ordersData);
+      },
+      (error) => {
+        console.error("Firebase error:", error);
+        toast.error("Real-time connection error");
+      },
+    );
 
-    // Initial load
-    fetchData();
+    // Cleanup: disconnect when leaving page
+    return () => unsubscribe();
+  }, [isAdmin, notifiedOrderIds]);
 
-    // Initialize Socket.io connection for real-time table updates
-    const socket = io("http://localhost:3000", {
-      path: "/api/socket/io",
-      reconnection: true,
-      reconnectionDelay: 1000,
-      reconnectionDelayMax: 5000,
-      reconnectionAttempts: 5,
-    });
-
-    socketRef.current = socket;
-
-    // Join the admin-orders room
-    socket.emit("join-admin-orders");
-
-    // Listen for new orders
-    socket.on("new-order", (newOrder: Order) => {
-      toast.success(`New Order #${newOrder.id}`, {
-        description: `Customer: ${newOrder.user.name}`,
-      });
-      setOrders((prevOrders) => [newOrder, ...prevOrders]);
-    });
-
-    // Listen for order updates and refresh table
-    socket.on("order-updated", (updatedOrder: Order) => {
-      setOrders((prevOrders) =>
-        prevOrders.map((order) =>
-          order.id === updatedOrder.id ? updatedOrder : order,
-        ),
-      );
-    });
-
-    // Listen for order deletion and remove from table
-    socket.on("order-deleted", (orderId: number) => {
-      setOrders((prevOrders) =>
-        prevOrders.filter((order) => order.id !== orderId),
-      );
-    });
-
-    // Cleanup on unmount
-    return () => {
-      socket.disconnect();
-      socketRef.current = null;
-    };
-  }, [isAdmin]);
-
-  const handleUpdateOrderStatus = async (orderId: number, status: string) => {
+  // 3. UPDATE STATUS (API call + Firebase auto-update)
+  const handleUpdateOrderStatus = async (
+    orderId: number | string,
+    status: string,
+  ) => {
     try {
+      // Update in PostgreSQL
       const response = await fetch(`/api/orders/${orderId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ status }),
       });
 
-      if (response.ok) {
-        const updatedOrder = await response.json();
-        // Socket.io will handle the update through the "order-updated" event
-        // emitted from the API route
-      } else {
-        toast("Failed to update order status");
+      if (!response.ok) {
+        toast.error("Failed to update status");
       }
     } catch (error) {
-      console.error("Error updating order status:", error);
-      toast("Error updating order status");
+      console.error("Error:", error);
+      toast.error("An error occurred");
     }
   };
 
-  const handleDeleteOrder = async (orderId: number) => {
+  // 4. DELETE
+  const handleDeleteOrder = async (orderId: number | string) => {
     if (!confirm("Are you sure you want to delete this order?")) return;
 
     try {
@@ -181,18 +192,16 @@ export default function AdminOrderPage() {
         method: "DELETE",
       });
 
-      if (response.ok) {
-        // Socket.io will handle the removal through the "order-deleted" event
-        // emitted from the API route
-      } else {
-        toast("Failed to delete order");
+      if (!response.ok) {
+        toast.error("Failed to delete");
       }
     } catch (error) {
-      console.error("Error deleting order:", error);
-      toast("Error deleting order");
+      console.error("Error:", error);
+      toast.error("An error occurred");
     }
   };
 
+  // Loading state
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -204,6 +213,7 @@ export default function AdminOrderPage() {
     );
   }
 
+  // Access denied
   if (!isAdmin) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -285,7 +295,7 @@ export default function AdminOrderPage() {
                         #{order.id}
                       </td>
                       <td className="px-6 py-4 text-sm text-foreground">
-                        {order.user.name}
+                        {order.user?.name || "Unknown"}
                       </td>
                       <td className="px-6 py-4 text-sm text-muted-foreground">
                         <div className="line-clamp-2">
@@ -382,7 +392,7 @@ export default function AdminOrderPage() {
                             onClick={() =>
                               handleUpdateOrderStatus(order.id, "DELIVERING")
                             }
-                            className={`px-2 py-1 text-xs rounded-md font-medium transition-colors ${
+                            className={`px-2 py-1 text-xs rounded-md font-medium transition-colors cursor-pointer ${
                               order.status === "DELIVERING"
                                 ? "bg-purple-200 text-purple-800"
                                 : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -394,7 +404,7 @@ export default function AdminOrderPage() {
                             onClick={() =>
                               handleUpdateOrderStatus(order.id, "COMPLETED")
                             }
-                            className={`px-2 py-1 text-xs rounded-md font-medium transition-colors ${
+                            className={`px-2 py-1 text-xs rounded-md font-medium transition-colors cursor-pointer ${
                               order.status === "COMPLETED"
                                 ? "bg-green-200 text-green-800"
                                 : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -406,7 +416,7 @@ export default function AdminOrderPage() {
                             onClick={() =>
                               handleUpdateOrderStatus(order.id, "CANCELLED")
                             }
-                            className={`px-2 py-1 text-xs rounded-md font-medium transition-colors ${
+                            className={`px-2 py-1 text-xs rounded-md font-medium transition-colors cursor-pointer ${
                               order.status === "CANCELLED"
                                 ? "bg-red-200 text-red-800"
                                 : "bg-muted text-muted-foreground hover:bg-muted/80"
@@ -416,7 +426,7 @@ export default function AdminOrderPage() {
                           </button>
                           <button
                             onClick={() => handleDeleteOrder(order.id)}
-                            className="px-2 py-1 text-xs rounded-md font-medium bg-red-100 text-red-700 hover:bg-red-200 transition-colors"
+                            className="px-2 py-1 text-xs rounded-md font-medium bg-red-100 text-red-700 hover:bg-red-200 transition-colors cursor-pointer"
                           >
                             Delete
                           </button>

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Navbar from "../navbar/navber";
 import { TbRosetteNumber1, TbRosetteNumber2, TbRosetteNumber3 } from "react-icons/tb";
+import Snowfall from "react-snowfall";
 
 type LeaderboardUser = {
   id: number;
@@ -53,7 +54,7 @@ export default function LeaderboardPage() {
       <div className="px-7 pt-6">
         <Navbar />
       </div>
-
+      <Snowfall />
       <div className="px-7 pt-6 max-w-4xl mx-auto">
         <div className="flex items-center justify-between mb-6">
           <div>

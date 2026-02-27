@@ -388,6 +388,38 @@ export async function POST(request: NextRequest) {
       });
     }
 
+    // Reset daily intake when profile is updated (weight/goal changes affect recommendations)
+    const resetDate = new Date();
+    resetDate.setHours(0, 0, 0, 0);
+
+    const existingDailyIntake = await prisma.dailyIntake.findUnique({
+      where: {
+        userId_date: {
+          userId: dbUser.id,
+          date: resetDate,
+        },
+      },
+    });
+
+    if (existingDailyIntake) {
+      // Reset daily intake to start fresh with new recommendations
+      await prisma.dailyIntake.update({
+        where: {
+          userId_date: {
+            userId: dbUser.id,
+            date: resetDate,
+          },
+        },
+        data: {
+          calories: 0,
+          protein: 0,
+          fat: 0,
+          carbs: 0,
+          water: 0,
+        },
+      });
+    }
+
     return NextResponse.json({
       age,
       isTeenager,

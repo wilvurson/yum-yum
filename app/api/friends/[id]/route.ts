@@ -1,13 +1,14 @@
 import { currentUser } from "@clerk/nextjs/server";
-import { NextResponse } from "next/server";
+import { NextResponse, NextRequest } from "next/server";
 import { prisma } from "../../../../lib/prisma";
 
-// PATCH - Accept or reject friend request
 export async function PATCH(
-  request: Request,
-  { params }: { params: { id: string } },
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await context.params;
+
     const user = await currentUser();
 
     if (!user) {
@@ -37,9 +38,8 @@ export async function PATCH(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const friendshipId = parseInt(params.id);
+    const friendshipId = parseInt(id);
 
-    // Find the friendship request
     const friendship = await prisma.friendship.findFirst({
       where: {
         id: friendshipId,
@@ -55,7 +55,6 @@ export async function PATCH(
       );
     }
 
-    // Update friendship status
     const updatedFriendship = await prisma.friendship.update({
       where: { id: friendshipId },
       data: { status },
@@ -73,10 +72,12 @@ export async function PATCH(
 
 // DELETE - Remove friend
 export async function DELETE(
-  request: Request,
-  { params }: { params: { id: string } },
+  request: NextRequest,
+  context: { params: Promise<{ id: string }> },
 ) {
   try {
+    const { id } = await context.params;
+
     const user = await currentUser();
 
     if (!user) {
@@ -97,9 +98,12 @@ export async function DELETE(
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
 
-    const friendId = parseInt(params.id);
+    const friendId = Number(id); 
 
-    // Find and delete the friendship
+    if (isNaN(friendId)) {
+      return NextResponse.json({ error: "Invalid ID" }, { status: 400 });
+    }
+
     const friendship = await prisma.friendship.findFirst({
       where: {
         id: friendId,

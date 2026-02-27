@@ -211,67 +211,123 @@ export default function StepperPage() {
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
         <div className="max-w-4xl mx-auto">
           <Card className="p-6 bg-white dark:bg-slate-800 shadow-xl">
+            <div>
+              <a
+                href="/home"
+                className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                Back to home
+              </a>
+            </div>
             <div className="text-center mb-6">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-green-100 dark:bg-green-900 mb-4">
                 <Check className="w-8 h-8 text-green-600 dark:text-green-400" />
               </div>
-              <h1 className="text-3xl font-bold text-slate-800 dark:text-white">Your Results</h1>
-              <p className="text-slate-600 dark:text-slate-300">Here's your personalized calorie plan</p>
+              <h1 className="text-3xl font-bold text-slate-800 dark:text-white">
+                Your Results
+              </h1>
+              <p className="text-slate-600 dark:text-slate-300">
+                Here's your personalized calorie plan
+              </p>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {/* Left Column - Basic Info */}
               <div className="space-y-4">
                 <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4">
-                  <p className="text-sm text-blue-600 dark:text-blue-400">Age</p>
-                  <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">{result.age} years</p>
+                  <p className="text-sm text-blue-600 dark:text-blue-400">
+                    Age
+                  </p>
+                  <p className="text-2xl font-bold text-blue-800 dark:text-blue-200">
+                    {result.age} years
+                  </p>
                 </div>
 
                 <div className="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-4">
-                  <p className="text-sm text-purple-600 dark:text-purple-400">BMI</p>
+                  <p className="text-sm text-purple-600 dark:text-purple-400">
+                    BMI
+                  </p>
                   <p className="text-2xl font-bold text-purple-800 dark:text-purple-200">
-                    {result.bmi} - <span className="text-purple-600">{result.bmiStatus}</span>
+                    {result.bmi} -{" "}
+                    <span className="text-purple-600">{result.bmiStatus}</span>
                   </p>
                 </div>
 
                 <div className="bg-orange-50 dark:bg-orange-900/30 rounded-lg p-4">
-                  <p className="text-sm text-orange-600 dark:text-orange-400">BMR</p>
-                  <p className="text-2xl font-bold text-orange-800 dark:text-orange-200">{result.bmr} kcal/day</p>
+                  <p className="text-sm text-orange-600 dark:text-orange-400">
+                    BMR
+                  </p>
+                  <p className="text-2xl font-bold text-orange-800 dark:text-orange-200">
+                    {result.bmr} kcal/day
+                  </p>
                 </div>
 
                 <div className="bg-teal-50 dark:bg-teal-900/30 rounded-lg p-4">
-                  <p className="text-sm text-teal-600 dark:text-teal-400">TDEE</p>
-                  <p className="text-2xl font-bold text-teal-800 dark:text-teal-200">{result.tdee} kcal/day</p>
+                  <p className="text-sm text-teal-600 dark:text-teal-400">
+                    TDEE
+                  </p>
+                  <p className="text-2xl font-bold text-teal-800 dark:text-teal-200">
+                    {result.tdee} kcal/day
+                  </p>
                 </div>
               </div>
 
               {/* Right Column - Main Result */}
               <div className="bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl p-6 text-white">
-                <p className="text-indigo-100 mb-1">Recommended Daily Calories</p>
-                <p className="text-5xl font-bold mb-2">{result.recommendedCalories}</p>
+                <p className="text-indigo-100 mb-1">
+                  Recommended Daily Calories
+                </p>
+                <p className="text-5xl font-bold mb-2">
+                  {result.recommendedCalories}
+                </p>
                 <p className="text-xl font-medium mb-4">kcal/day</p>
-                <p className="text-indigo-100 text-sm mb-2">{result.adjustment}</p>
-                <p className="text-indigo-200 text-sm font-semibold">{result.weightChangeMessage}</p>
+                <p className="text-indigo-100 text-sm mb-2">
+                  {result.adjustment}
+                </p>
+                <p className="text-indigo-200 text-sm font-semibold">
+                  {result.weightChangeMessage}
+                </p>
               </div>
 
               {/* Macronutrients */}
               <div className="md:col-span-2">
-                <h3 className="text-lg font-bold mb-4 text-slate-800 dark:text-white">Macronutrients</h3>
+                <h3 className="text-lg font-bold mb-4 text-slate-800 dark:text-white">
+                  Macronutrients
+                </h3>
                 <div className="grid grid-cols-3 gap-4">
                   <div className="bg-red-50 dark:bg-red-900/30 rounded-lg p-4 text-center">
-                    <p className="text-sm text-red-600 dark:text-red-400 font-semibold">Protein</p>
-                    <p className="text-3xl font-bold text-red-700 dark:text-red-300">{result.macros.protein.grams}g</p>
-                    <p className="text-xs text-red-500">{result.macros.protein.percentage}%</p>
+                    <p className="text-sm text-red-600 dark:text-red-400 font-semibold">
+                      Protein
+                    </p>
+                    <p className="text-3xl font-bold text-red-700 dark:text-red-300">
+                      {result.macros.protein.grams}g
+                    </p>
+                    <p className="text-xs text-red-500">
+                      {result.macros.protein.percentage}%
+                    </p>
                   </div>
                   <div className="bg-yellow-50 dark:bg-yellow-900/30 rounded-lg p-4 text-center">
-                    <p className="text-sm text-yellow-600 dark:text-yellow-400 font-semibold">Fat</p>
-                    <p className="text-3xl font-bold text-yellow-700 dark:text-yellow-300">{result.macros.fat.grams}g</p>
-                    <p className="text-xs text-yellow-500">{result.macros.fat.percentage}%</p>
+                    <p className="text-sm text-yellow-600 dark:text-yellow-400 font-semibold">
+                      Fat
+                    </p>
+                    <p className="text-3xl font-bold text-yellow-700 dark:text-yellow-300">
+                      {result.macros.fat.grams}g
+                    </p>
+                    <p className="text-xs text-yellow-500">
+                      {result.macros.fat.percentage}%
+                    </p>
                   </div>
                   <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4 text-center">
-                    <p className="text-sm text-green-600 dark:text-green-400 font-semibold">Carbs</p>
-                    <p className="text-3xl font-bold text-green-700 dark:text-green-300">{result.macros.carbs.grams}g</p>
-                    <p className="text-xs text-green-500">{result.macros.carbs.percentage}%</p>
+                    <p className="text-sm text-green-600 dark:text-green-400 font-semibold">
+                      Carbs
+                    </p>
+                    <p className="text-3xl font-bold text-green-700 dark:text-green-300">
+                      {result.macros.carbs.grams}g
+                    </p>
+                    <p className="text-xs text-green-500">
+                      {result.macros.carbs.percentage}%
+                    </p>
                   </div>
                 </div>
               </div>
@@ -280,8 +336,12 @@ export default function StepperPage() {
               <div className="md:col-span-2">
                 <div className="bg-blue-50 dark:bg-blue-900/30 rounded-lg p-4 flex items-center justify-between">
                   <div>
-                    <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">Water Intake</p>
-                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">{result.water.liters}L / day</p>
+                    <p className="text-sm text-blue-600 dark:text-blue-400 font-semibold">
+                      Water Intake
+                    </p>
+                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                      {result.water.liters}L / day
+                    </p>
                   </div>
                   <div className="text-4xl">💧</div>
                 </div>
@@ -291,9 +351,9 @@ export default function StepperPage() {
             <Button onClick={handleReset} className="w-full mt-6" size="lg">
               Calculate Again
             </Button>
-            <Button >
+            <Button>
               <Link href="/" className="w-full mt-2">
-              Go back to dashboard
+                Go back to dashboard
               </Link>
             </Button>
           </Card>
@@ -305,6 +365,12 @@ export default function StepperPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
       <div className="max-w-2xl mx-auto">
+        <div>
+          <a href="/home" className="inline-flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Back to home
+          </a>
+        </div>
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-slate-800 dark:text-white mb-2">
             Calorie Calculator

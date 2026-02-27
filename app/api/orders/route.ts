@@ -80,6 +80,72 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // 5. Update daily intake with calories and macros from ordered items
+    if (completeOrder && completeOrder.items) {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      // Calculate totals from food items
+      let totalCalories = 0;
+      let totalProtein = 0;
+      let totalFat = 0;
+      let totalCarbs = 0;
+      for (const item of completeOrder.items) {
+        if (item.food) {
+          totalCalories += item.food.calories * item.quantity;
+          totalProtein += item.food.protein * item.quantity;
+          totalFat += item.food.fat * item.quantity;
+          totalCarbs += item.food.carbs * item.quantity;
+        }
+      }
+
+      if (
+        totalCalories > 0 ||
+        totalProtein > 0 ||
+        totalFat > 0 ||
+        totalCarbs > 0
+      ) {
+        // Get or create today's daily intake
+        let dailyIntake = await prisma.dailyIntake.findUnique({
+          where: {
+            userId_date: {
+              userId: completeOrder.userId,
+              date: today,
+            },
+          },
+        });
+
+        if (!dailyIntake) {
+          dailyIntake = await prisma.dailyIntake.create({
+            data: {
+              userId: completeOrder.userId,
+              date: today,
+              calories: totalCalories,
+              protein: totalProtein,
+              fat: totalFat,
+              carbs: totalCarbs,
+            },
+          });
+        } else {
+          // Update existing daily intake
+          dailyIntake = await prisma.dailyIntake.update({
+            where: {
+              userId_date: {
+                userId: completeOrder.userId,
+                date: today,
+              },
+            },
+            data: {
+              calories: dailyIntake.calories + totalCalories,
+              protein: dailyIntake.protein + totalProtein,
+              fat: dailyIntake.fat + totalFat,
+              carbs: dailyIntake.carbs + totalCarbs,
+            },
+          });
+        }
+      }
+    }
+
     return NextResponse.json(completeOrder, { status: 201 });
   } catch (error) {
     console.error("Order creation error:", error);

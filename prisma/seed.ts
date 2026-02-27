@@ -36,7 +36,7 @@ async function main() {
       mealTypeId: breakfast.id,
       cuisineId: italian.id,
       image: "https://via.placeholder.com/150",
-      calories: "100",
+      calories: 100,
       price: 5.0,
     },
   });
@@ -49,7 +49,7 @@ async function main() {
       mealTypeId: breakfast.id,
       cuisineId: chinese.id,
       image: "https://via.placeholder.com/150",
-      calories: "200",
+      calories: 200,
       price: 3.0,
     },
   });
@@ -62,7 +62,7 @@ async function main() {
       mealTypeId: lunch.id,
       cuisineId: italian.id,
       image: "https://via.placeholder.com/150",
-      calories: "300",
+      calories: 300,
       price: 7.0,
     },
   });
@@ -75,7 +75,7 @@ async function main() {
       mealTypeId: lunch.id,
       cuisineId: chinese.id,
       image: "https://via.placeholder.com/150",
-      calories: "150",
+      calories: 150,
       price: 6.0,
     },
   });
@@ -114,6 +114,17 @@ async function main() {
       calPerUnit: "840",
       image: "https://via.placeholder.com/150",
       price: 3.0,
+    },
+  });
+
+  // Create an admin user for testing
+  await prisma.user.upsert({
+    where: { email: "admin@example.com" },
+    update: {},
+    create: {
+      email: "admin@example.com",
+      name: "Admin User",
+      isAdmin: true,
     },
   });
 

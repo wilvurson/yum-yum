@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import * as L from 'leaflet';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 // Fix default icon issue with react-leaflet
-delete (L.Icon.Default.prototype as any)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as { _getIconUrl?: string })._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon-2x.png",
   iconUrl: "https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-icon.png",
@@ -122,7 +122,7 @@ export default function Map({ userLocation, restaurants, mapCenter, mapZoom, onM
                 </div>
                 <p className="text-xs text-gray-500 mt-1">{restaurant.address}</p>
                 <div className="flex flex-wrap gap-1 mt-2">
-                  {restaurant.tags.slice(0, 2).map(tag => (
+                  {restaurant.tags.slice(0, 2).map((tag: string) => (
                     <span key={tag} className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs rounded-full">
                       {tag}
                     </span>

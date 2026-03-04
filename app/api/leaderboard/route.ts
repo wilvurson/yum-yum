@@ -1,6 +1,14 @@
 import { NextResponse } from "next/server";
 import { prisma } from "../../../lib/prisma";
 
+type LeaderboardUser = {
+  id: number;
+  name: string | null;
+  email: string | null;
+  points: number;
+  streak: number;
+};
+
 // GET - Get leaderboard sorted by points
 export async function GET(request: Request) {
   try {
@@ -24,10 +32,12 @@ export async function GET(request: Request) {
     });
 
     // Add rank to each user
-    const rankedLeaderboard = leaderboard.map((user, index) => ({
-      ...user,
-      rank: index + 1,
-    }));
+    const rankedLeaderboard = leaderboard.map(
+      (user: LeaderboardUser, index: number) => ({
+        ...user,
+        rank: index + 1,
+      }),
+    );
 
     return NextResponse.json(rankedLeaderboard);
   } catch (error) {

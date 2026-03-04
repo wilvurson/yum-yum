@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    return NextResponse.json(cuisines.map((c) => c.name));
+    return NextResponse.json(cuisines.map((c: { name: string }) => c.name));
   } catch (error) {
     console.error("Error fetching cuisines:", error);
     return NextResponse.json(
